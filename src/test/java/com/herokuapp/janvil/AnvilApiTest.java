@@ -15,7 +15,7 @@ import static org.testng.Assert.*;
 /**
  * @author Ryan Brainard
  */
-public class JanvilApiTest {
+public class AnvilApiTest {
 
     private File dir;
     private File emptyFile;
@@ -23,7 +23,7 @@ public class JanvilApiTest {
     private File randomContentsFile;
     private File subdir;
     private File subdirFile;
-    private JanvilApi api;
+    private AnvilApi anvil;
 
     @BeforeMethod
     protected void setUp(Method method) throws Exception {
@@ -50,7 +50,7 @@ public class JanvilApiTest {
         subdirFile = new File(subdir, "subdir.file");
         assertTrue(subdirFile.createNewFile());
 
-        api = new JanvilApi.Builder()
+        anvil = new AnvilApi.Builder()
                 .setScheme("http")
                 .setPort(80)
                 .setConsumersUserAgent(getClass().getSimpleName() + "." + method.getName())
@@ -60,40 +60,40 @@ public class JanvilApiTest {
     @Test
     public void testPostManifest() throws Exception {
         final Manifest manifest = createManifest();
-        assertNotNull(api.post(manifest).getEntity(Map.class).get("id"));
+        assertNotNull(anvil.post(manifest).getEntity(Map.class).get("id"));
     }
 
     @Test
     public void testDiffManifest() throws Exception {
         final Manifest manifest = createManifest();
-        final Collection diff = api.diff(manifest).getEntity(Collection.class);
+        final Collection diff = anvil.diff(manifest).getEntity(Collection.class);
         assertEquals(diff, Collections.singleton(Manifest.hash(randomContentsFile)));
     }
 
     @Test
     public void testBuildManifest() throws Exception {
         final Manifest manifest = createManifest();
-        final String response = api.build(manifest, new HashMap<String, String>()).getEntity(String.class);
+        final String response = anvil.build(manifest, new HashMap<String, String>()).getEntity(String.class);
         assertTrue(response.contains("Success, slug is "), response);
     }
 
     @Test
     public void testPostFile() throws Exception {
         try {
-            api.get(randomContentsFile);
+            anvil.get(randomContentsFile);
             fail();
         } catch (UniformInterfaceException e) {
             // expected
         }
 
-        api.post(randomContentsFile);
-        assertEquals(Files.toString(api.get(randomContentsFile).getEntity(File.class), Charset.defaultCharset()),
+        anvil.post(randomContentsFile);
+        assertEquals(Files.toString(anvil.get(randomContentsFile).getEntity(File.class), Charset.defaultCharset()),
                 Files.toString(randomContentsFile, Charset.defaultCharset()));
     }
 
     @Test
     public void testGetFile() throws Exception {
-        assertEquals(Files.toString(api.get(staticContentsFile).getEntity(File.class), Charset.defaultCharset()),
+        assertEquals(Files.toString(anvil.get(staticContentsFile).getEntity(File.class), Charset.defaultCharset()),
                 Files.toString(staticContentsFile, Charset.defaultCharset()));
     }
 

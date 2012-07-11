@@ -19,7 +19,7 @@ import static com.herokuapp.janvil.CurlFormDataContentDisposition.curlize;
 /**
  * @author Ryan Brainard
  */
-public class JanvilApi {
+public class AnvilApi {
 
     public static final String DEFAULT_SCHEME = "https";
     public static final String DEFAULT_HOST = "anvil.herokuapp.com";
@@ -63,14 +63,14 @@ public class JanvilApi {
             return this;
         }
 
-        public JanvilApi build() {
-            return new JanvilApi(this);
+        public AnvilApi build() {
+            return new AnvilApi(this);
         }
     }
 
     private final WebResource baseResource;
 
-    private JanvilApi(Builder builder) {
+    private AnvilApi(Builder builder) {
         baseResource = universalClient.resource(builder.scheme + "://" + builder.host + ":" + builder.port);
         baseResource.addFilter(new UserAgentFilter(builder.consumersUserAgent));
     }

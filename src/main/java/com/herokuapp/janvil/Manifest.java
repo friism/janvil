@@ -27,6 +27,18 @@ class Manifest {
             this.mode = mode(file);
             this.hash = hash(file);
         }
+
+        public long getMtime() {
+            return mtime;
+        }
+
+        public String getMode() {
+            return mode;
+        }
+
+        public String getHash() {
+            return hash;
+        }
     }
 
     static String mode(File file) {

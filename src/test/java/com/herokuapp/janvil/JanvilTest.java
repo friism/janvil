@@ -36,6 +36,7 @@ public class JanvilTest {
         janvil = new Janvil.Builder()
                 .setScheme("http")
                 .setPort(80)
+                .setConsumersUserAgent(getClass().getSimpleName())
                 .build();
     }
 

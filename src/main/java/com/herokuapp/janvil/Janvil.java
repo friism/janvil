@@ -30,7 +30,7 @@ public class Janvil {
         final ClientConfig config = new DefaultClientConfig();
         config.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
         config.getProperties().put(ClientConfig.PROPERTY_CHUNKED_ENCODING_SIZE, -1 /* default chunk size */);
-        // TODO: user agent
+
         universalClient = com.sun.jersey.api.client.Client.create(config);
     }
 
@@ -39,6 +39,8 @@ public class Janvil {
         private String scheme = DEFAULT_SCHEME;
         private String host = DEFAULT_HOST;
         private int port = DEFAULT_PORT;
+
+        private String consumersUserAgent;
 
         public Builder setScheme(String scheme) {
             this.scheme = scheme;
@@ -55,6 +57,11 @@ public class Janvil {
             return this;
         }
 
+        public Builder setConsumersUserAgent(String consumersUserAgent) {
+            this.consumersUserAgent = consumersUserAgent;
+            return this;
+        }
+
         public Janvil build() {
             return new Janvil(this);
         }
@@ -64,6 +71,7 @@ public class Janvil {
 
     private Janvil(Builder builder) {
         baseResource = universalClient.resource(builder.scheme + "://" + builder.host + ":" + builder.port);
+        baseResource.addFilter(new UserAgentFilter(builder.consumersUserAgent));
     }
 
     public String post(Manifest manifest) throws IOException {

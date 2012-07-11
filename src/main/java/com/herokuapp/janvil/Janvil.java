@@ -22,8 +22,6 @@ public class Janvil {
     public static final String DEFAULT_HOST = "anvil.herokuapp.com";
     public static final int DEFAULT_PORT = 443;
 
-    private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
-
     private static final Client universalClient;
 
     static {
@@ -75,15 +73,15 @@ public class Janvil {
     }
 
     public String post(Manifest manifest) throws IOException {
-        MultivaluedMap<String,String> body = new MultivaluedMapImpl();
-        body.add("manifest", JSON_MAPPER.writeValueAsString(manifest.entries));
+        final MultivaluedMap<String,String> request = new MultivaluedMapImpl();
+        request.add("manifest", manifest.asJson());
 
-        final Map res = baseResource
+        final Map response = baseResource
                 .path("/manifest")
                 .type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
                 .accept(MediaType.APPLICATION_JSON_TYPE)
-                .post(Map.class, body);
+                .post(Map.class, request);
 
-        return res.get("id").toString();
+        return response.get("id").toString();
     }
 }

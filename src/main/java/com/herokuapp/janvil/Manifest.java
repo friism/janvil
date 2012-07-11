@@ -1,5 +1,9 @@
 package com.herokuapp.janvil;
 
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.map.ObjectMapper;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -12,32 +16,23 @@ import java.util.regex.Pattern;
 /**
  * @author Ryan Brainard
  */
-class Manifest {
+public class Manifest {
 
+    private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
     private static final Pattern SYSTEM_FILE_SEPARATOR_PATTERN = Pattern.compile(Pattern.quote(File.separator));
     private static final String UNIX_FILE_SEPARATOR = "/";
 
-    static class Entry {
-        private final long mtime;
-        private final String mode;
-        private final String hash;
+    @SuppressWarnings("UnusedDeclaration")
+    private static class Entry {
+
+        @JsonProperty private final long mtime;
+        @JsonProperty private final String mode;
+        @JsonProperty private final String hash;
 
         Entry(File file) throws IOException {
             this.mtime = file.lastModified();
             this.mode = mode(file);
             this.hash = hash(file);
-        }
-
-        public long getMtime() {
-            return mtime;
-        }
-
-        public String getMode() {
-            return mode;
-        }
-
-        public String getHash() {
-            return hash;
         }
     }
 
@@ -85,25 +80,27 @@ class Manifest {
         return sb.toString();
     }
 
-    final File baseDir;
     final Pattern baseDirPattern;
     final Map<String, Entry> entries = new HashMap<String, Entry>();
 
-    Manifest(File baseDir) throws IOException {
+    public Manifest(File baseDir) throws IOException {
         if (!baseDir.isDirectory()) {
             throw new IllegalArgumentException("baseDir [" + baseDir + "] must be a directory");
         }
 
-        this.baseDir = baseDir;
         baseDirPattern = Pattern.compile(Pattern.quote(baseDir.getCanonicalPath() + File.separator));
     }
 
-    void add(File file) throws IOException {
+    public void add(File file) throws IOException {
         entries.put(relPath(file), new Entry(file));
     }
 
     String relPath(File file) throws IOException {
         final String sysRelPath = baseDirPattern.matcher(file.getCanonicalPath()).replaceFirst("");
         return SYSTEM_FILE_SEPARATOR_PATTERN.matcher(sysRelPath).replaceAll(UNIX_FILE_SEPARATOR);
+    }
+
+    public String asJson() throws IOException {
+        return JSON_MAPPER.writeValueAsString(entries);
     }
 }

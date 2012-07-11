@@ -1,19 +1,25 @@
 package com.herokuapp.janvil;
 
 import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
+import com.sun.jersey.core.header.ContentDisposition;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
+import com.sun.jersey.multipart.FormDataMultiPart;
+import com.sun.jersey.multipart.file.FileDataBodyPart;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
-import java.io.IOException;
+import java.io.*;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+
+import static com.herokuapp.janvil.CurlFormDataContentDisposition.*;
 
 /**
  * @author Ryan Brainard
@@ -90,6 +96,16 @@ public class Janvil {
                 .type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
                 .accept(MediaType.APPLICATION_JSON_TYPE)
                 .post(Collection.class, singletonManifestBody(manifest));
+    }
+
+    public ClientResponse post(File file) throws IOException {
+        final FormDataMultiPart request = new FormDataMultiPart();
+        request.bodyPart(curlize(new FileDataBodyPart("data", file)));
+
+        return baseResource
+                .path("/file/" + Manifest.hash(file))
+                .type(MediaType.MULTIPART_FORM_DATA_TYPE)
+                .post(ClientResponse.class, request);
     }
 
     private MultivaluedMap<String, String> singletonManifestBody(Manifest manifest) throws IOException {

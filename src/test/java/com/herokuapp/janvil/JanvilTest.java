@@ -1,12 +1,14 @@
 package com.herokuapp.janvil;
 
 import com.google.common.io.Files;
+import com.sun.jersey.api.client.ClientResponse;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.UUID;
@@ -29,7 +31,7 @@ public class JanvilTest {
     private Janvil janvil;
 
     @BeforeMethod
-    protected void setUp() throws Exception {
+    protected void setUp(Method method) throws Exception {
         dir = Files.createTempDir();
 
         emptyFile = new File(dir, "empty.file");
@@ -56,7 +58,7 @@ public class JanvilTest {
         janvil = new Janvil.Builder()
                 .setScheme("http")
                 .setPort(80)
-                .setConsumersUserAgent(getClass().getSimpleName())
+                .setConsumersUserAgent(getClass().getSimpleName() + "." + method.getName())
                 .build();
     }
 
@@ -71,6 +73,12 @@ public class JanvilTest {
         Manifest manifest = createManifest();
         final Collection diff = janvil.diff(manifest);
         assertEquals(diff, Collections.singleton(Manifest.hash(randomContentsFile)));
+    }
+
+    @Test
+    public void testPostFile() throws Exception {
+        final ClientResponse res = janvil.post(staticContentsFile);
+        assertNotNull(res);
     }
 
     private Manifest createManifest() throws IOException {

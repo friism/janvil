@@ -25,16 +25,6 @@ public class AnvilApi {
     public static final String DEFAULT_HOST = "anvil.herokuapp.com";
     public static final int DEFAULT_PORT = 443;
 
-    private static final Client universalClient;
-
-    static {
-        final ClientConfig config = new DefaultClientConfig();
-        config.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
-        config.getProperties().put(ClientConfig.PROPERTY_CHUNKED_ENCODING_SIZE, -1 /* default chunk size */);
-
-        universalClient = com.sun.jersey.api.client.Client.create(config);
-    }
-
     public static final class Builder {
 
         private String scheme = DEFAULT_SCHEME;
@@ -64,13 +54,13 @@ public class AnvilApi {
         }
 
         public AnvilApi build() {
-            return new AnvilApi(this);
+            return new AnvilApi(Janvil.universalClient, this);  //TODO: clean up
         }
     }
 
     private final WebResource baseResource;
 
-    private AnvilApi(Builder builder) {
+    private AnvilApi(Client universalClient, Builder builder) {
         baseResource = universalClient.resource(builder.scheme + "://" + builder.host + ":" + builder.port);
         baseResource.addFilter(new UserAgentFilter(builder.consumersUserAgent));
     }

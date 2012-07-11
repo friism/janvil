@@ -11,6 +11,8 @@ import org.codehaus.jackson.map.ObjectMapper;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -73,15 +75,26 @@ public class Janvil {
     }
 
     public String post(Manifest manifest) throws IOException {
-        final MultivaluedMap<String,String> request = new MultivaluedMapImpl();
-        request.add("manifest", manifest.asJson());
-
-        final Map response = baseResource
+        return baseResource
                 .path("/manifest")
                 .type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
                 .accept(MediaType.APPLICATION_JSON_TYPE)
-                .post(Map.class, request);
+                .post(Map.class, singletonManifestBody(manifest))
+                .get("id")
+                .toString();
+    }
 
-        return response.get("id").toString();
+    public Collection diff(Manifest manifest) throws IOException {
+        return baseResource
+                .path("/manifest/diff")
+                .type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
+                .accept(MediaType.APPLICATION_JSON_TYPE)
+                .post(Collection.class, singletonManifestBody(manifest));
+    }
+
+    private MultivaluedMap<String, String> singletonManifestBody(Manifest manifest) throws IOException {
+        final MultivaluedMap<String,String> request = new MultivaluedMapImpl();
+        request.add("manifest", manifest.asJson());
+        return request;
     }
 }

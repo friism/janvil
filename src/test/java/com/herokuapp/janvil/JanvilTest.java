@@ -1,7 +1,7 @@
 package com.herokuapp.janvil;
 
 import com.google.common.io.Files;
-import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.UniformInterfaceException;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -9,13 +9,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
+import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.UUID;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 
 /**
  * @author Ryan Brainard
@@ -77,8 +76,22 @@ public class JanvilTest {
 
     @Test
     public void testPostFile() throws Exception {
-        final ClientResponse res = janvil.post(staticContentsFile);
-        assertNotNull(res);
+        try {
+            janvil.get(randomContentsFile);
+            fail();
+        } catch (UniformInterfaceException e) {
+            // expected
+        }
+
+        janvil.post(randomContentsFile);
+        assertEquals(Files.toString(janvil.get(randomContentsFile), Charset.defaultCharset()),
+                Files.toString(randomContentsFile, Charset.defaultCharset()));
+    }
+
+    @Test
+    public void testGetFile() throws Exception {
+        assertEquals(Files.toString(janvil.get(staticContentsFile), Charset.defaultCharset()),
+                     Files.toString(staticContentsFile, Charset.defaultCharset()));
     }
 
     private Manifest createManifest() throws IOException {

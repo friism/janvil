@@ -98,14 +98,25 @@ public class Janvil {
                 .post(Collection.class, singletonManifestBody(manifest));
     }
 
-    public ClientResponse post(File file) throws IOException {
+    public void post(File file) throws IOException {
         final FormDataMultiPart request = new FormDataMultiPart();
         request.bodyPart(curlize(new FileDataBodyPart("data", file)));
 
+        baseResource
+            .path("/file/" + Manifest.hash(file))
+            .type(MediaType.MULTIPART_FORM_DATA_TYPE)
+            .post(request);
+    }
+
+    public File get(String hash) throws IOException {
         return baseResource
-                .path("/file/" + Manifest.hash(file))
-                .type(MediaType.MULTIPART_FORM_DATA_TYPE)
-                .post(ClientResponse.class, request);
+                .path("/file/" + hash)
+                .accept(MediaType.APPLICATION_OCTET_STREAM_TYPE)
+                .get(File.class);
+    }
+
+    public File get(File file) throws IOException {
+        return get(Manifest.hash(file));
     }
 
     private MultivaluedMap<String, String> singletonManifestBody(Manifest manifest) throws IOException {

@@ -6,25 +6,20 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
-import com.sun.jersey.core.header.ContentDisposition;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 import com.sun.jersey.multipart.FormDataMultiPart;
 import com.sun.jersey.multipart.file.FileDataBodyPart;
-import org.codehaus.jackson.map.ObjectMapper;
 
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import java.io.*;
-import java.util.Collection;
-import java.util.List;
+import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 
-import static com.herokuapp.janvil.CurlFormDataContentDisposition.*;
+import static com.herokuapp.janvil.CurlFormDataContentDisposition.curlize;
 
 /**
  * @author Ryan Brainard
  */
-public class Janvil {
+public class JanvilApi {
 
     public static final String DEFAULT_SCHEME = "https";
     public static final String DEFAULT_HOST = "anvil.herokuapp.com";
@@ -68,60 +63,69 @@ public class Janvil {
             return this;
         }
 
-        public Janvil build() {
-            return new Janvil(this);
+        public JanvilApi build() {
+            return new JanvilApi(this);
         }
     }
 
     private final WebResource baseResource;
 
-    private Janvil(Builder builder) {
+    private JanvilApi(Builder builder) {
         baseResource = universalClient.resource(builder.scheme + "://" + builder.host + ":" + builder.port);
         baseResource.addFilter(new UserAgentFilter(builder.consumersUserAgent));
     }
 
-    public String post(Manifest manifest) throws IOException {
+    public ClientResponse post(Manifest manifest) throws IOException {
         return baseResource
                 .path("/manifest")
-                .type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
+                .type(MediaType.MULTIPART_FORM_DATA_TYPE)
                 .accept(MediaType.APPLICATION_JSON_TYPE)
-                .post(Map.class, singletonManifestBody(manifest))
-                .get("id")
-                .toString();
+                .post(ClientResponse.class, new FormDataMultiPart()
+                        .field("manifest", manifest.getEntries(), MediaType.APPLICATION_JSON_TYPE));
     }
 
-    public Collection diff(Manifest manifest) throws IOException {
+    public ClientResponse build(Manifest manifest, Map<String, String> env) throws IOException {
+        return build(manifest, env, "");
+    }
+
+    public ClientResponse build(Manifest manifest, Map<String,String> env, String buildpack) throws IOException {
+        return baseResource
+                .path("/manifest/build")
+                .type(MediaType.MULTIPART_FORM_DATA_TYPE)
+                .accept(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, new FormDataMultiPart()
+                        .field("manifest", manifest.getEntries(), MediaType.APPLICATION_JSON_TYPE)
+                        .field("env", env, MediaType.APPLICATION_JSON_TYPE)
+                        .field("buildpack", buildpack)
+                );
+    }
+
+    public ClientResponse diff(Manifest manifest) throws IOException {
         return baseResource
                 .path("/manifest/diff")
-                .type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
+                .type(MediaType.MULTIPART_FORM_DATA_TYPE)
                 .accept(MediaType.APPLICATION_JSON_TYPE)
-                .post(Collection.class, singletonManifestBody(manifest));
+                .post(ClientResponse.class, new FormDataMultiPart()
+                        .field("manifest", manifest.getEntries(), MediaType.APPLICATION_JSON_TYPE));
     }
 
-    public void post(File file) throws IOException {
-        final FormDataMultiPart request = new FormDataMultiPart();
-        request.bodyPart(curlize(new FileDataBodyPart("data", file)));
-
-        baseResource
+    public ClientResponse post(File file) throws IOException {
+        return baseResource
             .path("/file/" + Manifest.hash(file))
             .type(MediaType.MULTIPART_FORM_DATA_TYPE)
-            .post(request);
+            .post(ClientResponse.class, new FormDataMultiPart()
+                    .bodyPart(curlize(new FileDataBodyPart("data", file))));
     }
 
-    public File get(String hash) throws IOException {
+    public ClientResponse get(String hash) throws IOException {
         return baseResource
                 .path("/file/" + hash)
                 .accept(MediaType.APPLICATION_OCTET_STREAM_TYPE)
-                .get(File.class);
+                .get(ClientResponse.class);
     }
 
-    public File get(File file) throws IOException {
+    public ClientResponse get(File file) throws IOException {
         return get(Manifest.hash(file));
     }
 
-    private MultivaluedMap<String, String> singletonManifestBody(Manifest manifest) throws IOException {
-        final MultivaluedMap<String,String> request = new MultivaluedMapImpl();
-        request.add("manifest", manifest.asJson());
-        return request;
-    }
 }

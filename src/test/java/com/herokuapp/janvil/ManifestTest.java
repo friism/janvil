@@ -38,7 +38,7 @@ public class ManifestTest {
         Manifest manifest = new Manifest(dir);
         manifest.add(file);
 
-        assertEquals(manifest.entries.keySet().iterator().next(), file.getName());
+        assertEquals(manifest.getEntries().keySet().iterator().next(), file.getName());
     }
 
     @Test

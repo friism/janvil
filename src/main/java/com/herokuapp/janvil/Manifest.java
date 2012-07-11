@@ -9,6 +9,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -18,7 +19,6 @@ import java.util.regex.Pattern;
  */
 public class Manifest {
 
-    private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
     private static final Pattern SYSTEM_FILE_SEPARATOR_PATTERN = Pattern.compile(Pattern.quote(File.separator));
     private static final String UNIX_FILE_SEPARATOR = "/";
 
@@ -80,8 +80,8 @@ public class Manifest {
         return sb.toString();
     }
 
-    final Pattern baseDirPattern;
-    final Map<String, Entry> entries = new HashMap<String, Entry>();
+    private final Pattern baseDirPattern;
+    private final Map<String, Entry> entries = new HashMap<String, Entry>();
 
     public Manifest(File baseDir) throws IOException {
         if (!baseDir.isDirectory()) {
@@ -100,7 +100,7 @@ public class Manifest {
         return SYSTEM_FILE_SEPARATOR_PATTERN.matcher(sysRelPath).replaceAll(UNIX_FILE_SEPARATOR);
     }
 
-    public String asJson() throws IOException {
-        return JSON_MAPPER.writeValueAsString(entries);
+    public Map<String, Entry> getEntries() {
+        return Collections.unmodifiableMap(entries);
     }
 }

@@ -5,21 +5,17 @@ import com.sun.jersey.api.client.UniformInterfaceException;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.UUID;
+import java.util.*;
 
 import static org.testng.Assert.*;
 
 /**
  * @author Ryan Brainard
  */
-public class JanvilTest {
+public class JanvilApiTest {
 
     private File dir;
     private File emptyFile;
@@ -27,7 +23,7 @@ public class JanvilTest {
     private File randomContentsFile;
     private File subdir;
     private File subdirFile;
-    private Janvil janvil;
+    private JanvilApi api;
 
     @BeforeMethod
     protected void setUp(Method method) throws Exception {
@@ -54,7 +50,7 @@ public class JanvilTest {
         subdirFile = new File(subdir, "subdir.file");
         assertTrue(subdirFile.createNewFile());
 
-        janvil = new Janvil.Builder()
+        api = new JanvilApi.Builder()
                 .setScheme("http")
                 .setPort(80)
                 .setConsumersUserAgent(getClass().getSimpleName() + "." + method.getName())
@@ -63,41 +59,48 @@ public class JanvilTest {
 
     @Test
     public void testPostManifest() throws Exception {
-        Manifest manifest = createManifest();
-        assertNotNull(janvil.post(manifest));
+        final Manifest manifest = createManifest();
+        assertNotNull(api.post(manifest).getEntity(Map.class).get("id"));
     }
 
     @Test
     public void testDiffManifest() throws Exception {
-        Manifest manifest = createManifest();
-        final Collection diff = janvil.diff(manifest);
+        final Manifest manifest = createManifest();
+        final Collection diff = api.diff(manifest).getEntity(Collection.class);
         assertEquals(diff, Collections.singleton(Manifest.hash(randomContentsFile)));
+    }
+
+    @Test
+    public void testBuildManifest() throws Exception {
+        final Manifest manifest = createManifest();
+        final String response = api.build(manifest, new HashMap<String, String>()).getEntity(String.class);
+        assertTrue(response.contains("Success, slug is "), response);
     }
 
     @Test
     public void testPostFile() throws Exception {
         try {
-            janvil.get(randomContentsFile);
+            api.get(randomContentsFile);
             fail();
         } catch (UniformInterfaceException e) {
             // expected
         }
 
-        janvil.post(randomContentsFile);
-        assertEquals(Files.toString(janvil.get(randomContentsFile), Charset.defaultCharset()),
+        api.post(randomContentsFile);
+        assertEquals(Files.toString(api.get(randomContentsFile).getEntity(File.class), Charset.defaultCharset()),
                 Files.toString(randomContentsFile, Charset.defaultCharset()));
     }
 
     @Test
     public void testGetFile() throws Exception {
-        assertEquals(Files.toString(janvil.get(staticContentsFile), Charset.defaultCharset()),
-                     Files.toString(staticContentsFile, Charset.defaultCharset()));
+        assertEquals(Files.toString(api.get(staticContentsFile).getEntity(File.class), Charset.defaultCharset()),
+                Files.toString(staticContentsFile, Charset.defaultCharset()));
     }
 
     private Manifest createManifest() throws IOException {
-        Manifest manifest = new Manifest(dir);
+        final Manifest manifest = new Manifest(dir);
         manifest.add(emptyFile);
-//        manifest.add(staticContentsFile);
+        manifest.add(staticContentsFile);
         manifest.add(randomContentsFile);
         manifest.add(subdirFile);
         return manifest;

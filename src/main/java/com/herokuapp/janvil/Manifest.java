@@ -1,8 +1,6 @@
 package com.herokuapp.janvil;
 
-import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -80,19 +78,27 @@ public class Manifest {
         return sb.toString();
     }
 
+    private final File baseDir;
     private final Pattern baseDirPattern;
     private final Map<String, Entry> entries = new HashMap<String, Entry>();
+    private final Map<String, File> hashes = new HashMap<String, File>();
 
     public Manifest(File baseDir) throws IOException {
         if (!baseDir.isDirectory()) {
             throw new IllegalArgumentException("baseDir [" + baseDir + "] must be a directory");
         }
-
+        this.baseDir = baseDir;
         baseDirPattern = Pattern.compile(Pattern.quote(baseDir.getCanonicalPath() + File.separator));
     }
 
     public void add(File file) throws IOException {
-        entries.put(relPath(file), new Entry(file));
+        final Entry entry = new Entry(file);
+        entries.put(relPath(file), entry);
+        hashes.put(entry.hash, file);
+    }
+
+    public void remove(File file) throws IOException {
+        entries.remove(relPath(file));
     }
 
     String relPath(File file) throws IOException {
@@ -102,5 +108,25 @@ public class Manifest {
 
     public Map<String, Entry> getEntries() {
         return Collections.unmodifiableMap(entries);
+    }
+
+    public File fromHash(String hash) {
+        return hashes.get(hash);
+    }
+
+    public void addAll() throws IOException {
+        syncRecurse(baseDir);
+    }
+
+    // TODO: make this more robust
+    private void syncRecurse(File dir) throws IOException {
+        for (File child : dir.listFiles()) {
+            if (child.isDirectory()) {
+                syncRecurse(child);
+                continue;
+            }
+
+            add(child);
+        }
     }
 }

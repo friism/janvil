@@ -1,13 +1,12 @@
 package com.herokuapp.janvil;
 
 import com.sun.jersey.core.header.FormDataContentDisposition;
-import com.sun.jersey.multipart.BodyPart;
 import com.sun.jersey.multipart.file.FileDataBodyPart;
 
 /**
  * @author Ryan Brainard
  */
-public class CurlFormDataContentDisposition extends FormDataContentDisposition {
+class CurlFormDataContentDisposition extends FormDataContentDisposition {
 
     protected CurlFormDataContentDisposition(FormDataContentDisposition d) {
         super(d.getType(), d.getName(), d.getFileName(), d.getCreationDate(), d.getModificationDate(), d.getReadDate(), d.getSize());

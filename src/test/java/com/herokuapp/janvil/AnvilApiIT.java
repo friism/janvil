@@ -1,60 +1,33 @@
 package com.herokuapp.janvil;
 
 import com.google.common.io.Files;
-import com.sun.jersey.api.client.UniformInterfaceException;
+import com.sun.jersey.api.client.ClientResponse;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
+import java.net.HttpURLConnection;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.testng.Assert.*;
 
 /**
  * @author Ryan Brainard
  */
-public class AnvilApiTest {
+public class AnvilApiIT extends BaseIT {
 
-    private File dir;
-    private File emptyFile;
-    private File staticContentsFile;
-    private File randomContentsFile;
-    private File subdir;
-    private File subdirFile;
-    private AnvilApi anvil;
+    AnvilApiClient anvil;
 
     @BeforeMethod
     protected void setUp(Method method) throws Exception {
-        dir = Files.createTempDir();
-
-        emptyFile = new File(dir, "empty.file");
-        assertTrue(emptyFile.createNewFile());
-
-        staticContentsFile = new File(dir, "static.file");
-        assertTrue(staticContentsFile.createNewFile());
-        final PrintWriter staticWriter = new PrintWriter(staticContentsFile);
-        staticWriter.append("STATIC");
-        staticWriter.close();
-
-        randomContentsFile = new File(dir, "random.file");
-        assertTrue(randomContentsFile.createNewFile());
-        final PrintWriter randomWriter = new PrintWriter(randomContentsFile);
-        randomWriter.append(UUID.randomUUID().toString());
-        randomWriter.close();
-
-        subdir = new File(dir, "subdir");
-        assertTrue(subdir.mkdir());
-
-        subdirFile = new File(subdir, "subdir.file");
-        assertTrue(subdirFile.createNewFile());
-
-        anvil = new AnvilApi.Builder()
-                .setScheme("http")
-                .setPort(80)
-                .setConsumersUserAgent(getClass().getSimpleName() + "." + method.getName())
-                .build();
+        super.setUp(method);
+        anvil = new AnvilApiClient(config);
     }
 
     @Test
@@ -79,16 +52,12 @@ public class AnvilApiTest {
 
     @Test
     public void testPostFile() throws Exception {
-        try {
-            anvil.get(randomContentsFile);
-            fail();
-        } catch (UniformInterfaceException e) {
-            // expected
-        }
+        final ClientResponse before = anvil.get(randomContentsFile);
+        assertEquals(before.getStatus(), HttpURLConnection.HTTP_BAD_GATEWAY);
 
         anvil.post(randomContentsFile);
         assertEquals(Files.toString(anvil.get(randomContentsFile).getEntity(File.class), Charset.defaultCharset()),
-                Files.toString(randomContentsFile, Charset.defaultCharset()));
+                     Files.toString(randomContentsFile, Charset.defaultCharset()));
     }
 
     @Test

@@ -11,7 +11,7 @@ import static org.testng.Assert.*;
 /**
  * @author Ryan Brainard
  */
-public class ReleasesApiIT extends BaseIT {
+public class ReleasesApiClientIT extends BaseIT {
 
     private ReleasesApiClient releases;
 

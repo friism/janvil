@@ -8,6 +8,8 @@ import javax.ws.rs.core.MediaType;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import static com.herokuapp.janvil.CurlFormDataContentDisposition.curlize;
 
@@ -55,11 +57,22 @@ class AnvilApiClient extends AbstractApiClient {
     }
 
     public ClientResponse post(File file) throws IOException {
-        return baseResource
-            .path("/file/" + Manifest.hash(file))
-            .type(MediaType.MULTIPART_FORM_DATA_TYPE)
-            .post(ClientResponse.class, new FormDataMultiPart()
-                    .bodyPart(curlize(new FileDataBodyPart("data", file))));
+        try {
+            return postAsync(file).get();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Future<ClientResponse> postAsync(File file) throws IOException {
+        return asyncBaseResource
+                .path("/file/" + Manifest.hash(file))
+                .type(MediaType.MULTIPART_FORM_DATA_TYPE)
+                .post(ClientResponse.class, new FormDataMultiPart()
+                        .bodyPart(curlize(new FileDataBodyPart("data", file))));
+
     }
 
     public ClientResponse get(String hash) throws IOException {

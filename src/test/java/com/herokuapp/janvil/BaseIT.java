@@ -6,6 +6,7 @@ import org.testng.annotations.BeforeMethod;
 import java.io.File;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
+import java.util.EnumSet;
 import java.util.UUID;
 
 import static org.testng.Assert.assertTrue;
@@ -23,6 +24,7 @@ public abstract class BaseIT {
     protected File subdirFile;
     protected Janvil.Config config;
     protected String appName;
+    protected EventSubscription printAllEvents;
 
     @BeforeMethod
     protected void setUp(Method method) throws Exception {
@@ -54,6 +56,14 @@ public abstract class BaseIT {
         config = new Janvil.Config(System.getenv("HEROKU_API_KEY"))
                 .setProtocol(Janvil.Protocol.HTTP)
                 .setConsumersUserAgent(getClass().getSimpleName() + "." + method.getName());
+
+        printAllEvents = new EventSubscription()
+                .subscribe(EnumSet.allOf(EventSubscription.Event.class),
+                        new EventSubscription.Subscriber() {
+                            public void handle(EventSubscription.Event event, Object data) {
+                                System.out.println(event + ":" + data);
+                            }
+                        });
     }
 
 }

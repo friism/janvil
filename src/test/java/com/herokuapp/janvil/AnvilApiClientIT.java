@@ -14,13 +14,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Future;
 
 import static org.testng.Assert.*;
 
 /**
  * @author Ryan Brainard
  */
-public class AnvilApiIT extends BaseIT {
+public class AnvilApiClientIT extends BaseIT {
 
     AnvilApiClient anvil;
 

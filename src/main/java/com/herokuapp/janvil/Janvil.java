@@ -2,11 +2,13 @@ package com.herokuapp.janvil;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
 
 import java.io.*;
+import java.net.HttpURLConnection;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -72,7 +74,7 @@ public class Janvil {
         releases = new ReleasesApiClient(config);
     }
 
-    public String deploy(DeployRequest request) throws IOException {
+    public void deploy(DeployRequest request) throws IOException {
         request.eventSubscription.announce(EventSubscription.Event.DEPLOY_START);
 
         request.eventSubscription.announce(EventSubscription.Event.DIFF_START);
@@ -80,14 +82,14 @@ public class Janvil {
         request.eventSubscription.announce(EventSubscription.Event.DIFF_END);
 
         request.eventSubscription.announce(EventSubscription.Event.UPLOADS_START);
-        final Map<File,Future<ClientResponse>> uploads = new HashMap<File,Future<ClientResponse>>(filesToUpload.size());
+        final Map<File, Future<ClientResponse>> uploads = new HashMap<File, Future<ClientResponse>>(filesToUpload.size());
         for (Object hash : filesToUpload) {
             final File file = request.manifest.fromHash(hash.toString());
             request.eventSubscription.announce(EventSubscription.Event.UPLOAD_FILE_START, file);
             uploads.put(file, anvil.postAsync(file));
         }
 
-        for (Map.Entry<File,Future<ClientResponse>> upload : uploads.entrySet()) {
+        for (Map.Entry<File, Future<ClientResponse>> upload : uploads.entrySet()) {
             try {
                 upload.getValue().get();
                 request.eventSubscription.announce(EventSubscription.Event.UPLOAD_FILE_END, upload.getKey());
@@ -102,20 +104,29 @@ public class Janvil {
         request.eventSubscription.announce(EventSubscription.Event.BUILD_START);
         final ClientResponse buildResponse = anvil.build(request.manifest, request.env);
         final String slugUrl = buildResponse.getHeaders().get("X-Slug-Url").get(0);
-        final BufferedReader buildOutput = new BufferedReader(new InputStreamReader(buildResponse.getEntity(InputStream.class)));
-        String nextLine = null;
-        while ((nextLine = buildOutput.readLine()) != null) {
-            request.eventSubscription.announce(EventSubscription.Event.BUILD_OUTPUT_LINE, nextLine);
+
+        BufferedReader buildOutput = null;
+        try {
+            buildOutput = new BufferedReader(new InputStreamReader(buildResponse.getEntity(InputStream.class)));
+            String line;
+            while ((line = buildOutput.readLine()) != null) {
+                request.eventSubscription.announce(EventSubscription.Event.BUILD_OUTPUT_LINE, line);
+            }
+        } finally {
+            if (buildOutput != null) {
+                buildOutput.close();
+            }
         }
         request.eventSubscription.announce(EventSubscription.Event.BUILD_END, slugUrl);
 
         request.eventSubscription.announce(EventSubscription.Event.RELEASE_START, slugUrl);
         final ClientResponse releaseResponse = releases.release(request.appName, slugUrl, "Janvil");
-        final String version = releaseResponse.getEntity(Map.class).get("release").toString();
-        request.eventSubscription.announce(EventSubscription.Event.RELEASE_END, version);
+        if (releaseResponse.getStatus() != HttpURLConnection.HTTP_OK) {
+            throw new UniformInterfaceException(releaseResponse);
+        }
+        request.eventSubscription.announce(EventSubscription.Event.RELEASE_END, releaseResponse.getEntity(Map.class).get("release"));
 
         request.eventSubscription.announce(EventSubscription.Event.DEPLOY_END);
-        return version;
     }
 
     static final class DeployRequest {

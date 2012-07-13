@@ -26,11 +26,8 @@ public class JanvilIT extends BaseIT {
 
     @Test
     public void testDeploy() throws Exception {
-        Manifest m = new Manifest(new File("/Users/brainard/Development/devcenter-java-web-worker"));
+        Manifest m = new Manifest(new File("/Users/brainard/Development/devcenter-java"));
         m.addAll();
-
-        final Janvil.DeployRequest request = new Janvil.DeployRequest(m, appName).setEventSubscription(printAllEvents);
-
-        assertTrue(janvil.deploy(request).startsWith("v"));
+        janvil.deploy(new Janvil.DeployRequest(m, appName).setEventSubscription(printAllEvents));
     }
 }

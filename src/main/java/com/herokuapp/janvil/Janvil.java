@@ -77,16 +77,16 @@ public class Janvil {
     public void deploy(DeployRequest request) throws IOException {
         request.eventSubscription.announce(EventSubscription.Event.DEPLOY_START);
 
-        request.eventSubscription.announce(EventSubscription.Event.DIFF_START);
+        request.eventSubscription.announce(EventSubscription.Event.DIFF_START, request.manifest.getEntries().size());
         final Collection filesToUpload = anvil.diff(request.manifest).getEntity(Collection.class);
-        request.eventSubscription.announce(EventSubscription.Event.DIFF_END);
+        request.eventSubscription.announce(EventSubscription.Event.DIFF_END, filesToUpload.size());
 
-        request.eventSubscription.announce(EventSubscription.Event.UPLOADS_START);
+        request.eventSubscription.announce(EventSubscription.Event.UPLOADS_START, filesToUpload.size());
         final Map<File, Future<ClientResponse>> uploads = new HashMap<File, Future<ClientResponse>>(filesToUpload.size());
         for (Object hash : filesToUpload) {
             final File file = request.manifest.fromHash(hash.toString());
             request.eventSubscription.announce(EventSubscription.Event.UPLOAD_FILE_START, file);
-            uploads.put(file, anvil.postAsync(file));
+            uploads.put(file, anvil.post(file));
         }
 
         for (Map.Entry<File, Future<ClientResponse>> upload : uploads.entrySet()) {
@@ -102,7 +102,7 @@ public class Janvil {
         request.eventSubscription.announce(EventSubscription.Event.UPLOADS_END);
 
         request.eventSubscription.announce(EventSubscription.Event.BUILD_START);
-        final ClientResponse buildResponse = anvil.build(request.manifest, request.env);
+        final ClientResponse buildResponse = anvil.build(request.manifest, request.env, request.buildpack);
         final String slugUrl = buildResponse.getHeaders().get("X-Slug-Url").get(0);
 
         BufferedReader buildOutput = null;
@@ -129,13 +129,14 @@ public class Janvil {
         request.eventSubscription.announce(EventSubscription.Event.DEPLOY_END);
     }
 
-    static final class DeployRequest {
+    public static final class DeployRequest {
         private Manifest manifest;
         private String appName;
         private HashMap<String, String> env;
+        private String buildpack = "";
         private EventSubscription eventSubscription;
 
-        DeployRequest(Manifest manifest, String appName) {
+        public DeployRequest(Manifest manifest, String appName) {
             this.manifest = manifest;
             this.appName = appName;
             this.env = new HashMap<String, String>();
@@ -144,6 +145,11 @@ public class Janvil {
 
         public DeployRequest setEnv(HashMap<String, String> env) {
             this.env = env;
+            return this;
+        }
+
+        public DeployRequest setBuildpack(String buildpack) {
+            this.buildpack = buildpack;
             return this;
         }
 

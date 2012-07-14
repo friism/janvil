@@ -19,14 +19,13 @@ class ReleasesApiClient extends AbstractApiClient {
     }
 
     public ClientResponse release(String appName, String buildUrl, String description) {
-        final MultivaluedMapImpl request = new MultivaluedMapImpl();
-        request.add("build_url", buildUrl);
-        request.add("description", description);
-
         return baseResource
                 .path("/apps/" + appName + "/release")
+                .type(MediaType.MULTIPART_FORM_DATA_TYPE)
                 .accept(MediaType.APPLICATION_JSON_TYPE)
-                .post(ClientResponse.class, request);
+                .post(ClientResponse.class, new FormDataMultiPart()
+                        .field("description", description)
+                        .field("build_url", buildUrl));
     }
 
 }

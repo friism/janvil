@@ -31,10 +31,6 @@ class AnvilApiClient extends AbstractApiClient {
                         .field("manifest", manifest.getEntries(), MediaType.APPLICATION_JSON_TYPE));
     }
 
-    public ClientResponse build(Manifest manifest, Map<String, String> env) throws IOException {
-        return build(manifest, env, "");
-    }
-
     public ClientResponse build(Manifest manifest, Map<String,String> env, String buildpack) throws IOException {
         return baseResource
                 .path("/manifest/build")
@@ -56,17 +52,7 @@ class AnvilApiClient extends AbstractApiClient {
                         .field("manifest", manifest.getEntries(), MediaType.APPLICATION_JSON_TYPE));
     }
 
-    public ClientResponse post(File file) throws IOException {
-        try {
-            return postAsync(file).get();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        } catch (ExecutionException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public Future<ClientResponse> postAsync(File file) throws IOException {
+    public Future<ClientResponse> post(File file) throws IOException {
         return asyncBaseResource
                 .path("/file/" + Manifest.hash(file))
                 .type(MediaType.MULTIPART_FORM_DATA_TYPE)

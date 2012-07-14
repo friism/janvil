@@ -47,7 +47,7 @@ public class AnvilApiClientIT extends BaseIT {
     @Test
     public void testBuildManifest() throws Exception {
         final Manifest manifest = createManifest();
-        final String response = anvil.build(manifest, new HashMap<String, String>()).getEntity(String.class);
+        final String response = anvil.build(manifest, new HashMap<String, String>(), "").getEntity(String.class);
         assertTrue(response.contains("Success, slug is "), response);
     }
 
@@ -56,7 +56,7 @@ public class AnvilApiClientIT extends BaseIT {
         final ClientResponse before = anvil.get(randomContentsFile);
         assertEquals(before.getStatus(), HttpURLConnection.HTTP_BAD_GATEWAY);
 
-        anvil.post(randomContentsFile);
+        anvil.post(randomContentsFile).get();
         assertEquals(Files.toString(anvil.get(randomContentsFile).getEntity(File.class), Charset.defaultCharset()),
                      Files.toString(randomContentsFile, Charset.defaultCharset()));
     }

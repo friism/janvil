@@ -34,7 +34,7 @@ public class AnvilApiClientIT extends BaseIT {
     @Test
     public void testPostManifest() throws Exception {
         final Manifest manifest = createManifest();
-        assertNotNull(anvil.post(manifest).getEntity(Map.class).get("id"));
+        assertEquals(anvil.post(manifest).getEntity(String.class), "ok");
     }
 
     @Test

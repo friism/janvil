@@ -8,7 +8,6 @@ import javax.ws.rs.core.MediaType;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import static com.herokuapp.janvil.CurlFormDataContentDisposition.curlize;
@@ -19,7 +18,7 @@ import static com.herokuapp.janvil.CurlFormDataContentDisposition.curlize;
 class AnvilApiClient extends AbstractApiClient {
 
     AnvilApiClient(Janvil.Config config) {
-        super(config, "anvil.herokuapp.com");
+        super(config, "anvil-production.herokuapp.com");
     }
 
     public ClientResponse post(Manifest manifest) throws IOException {

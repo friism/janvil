@@ -25,7 +25,7 @@ public class ReleasesAsyncClientIT extends BaseIT {
     public void testRelease() throws Exception {
         final ClientResponse response = releases.release(
                 appName,
-                "https://anvil.herokuapp.com/slugs/b9861180-cc65-11e1-92f9-db6ecc4b02c6.img",
+                "https://anvil-production.herokuapp.com/slugs/c51d5b81-d042-11e1-8327-2fad2fa1628b.tgz",
                 "hello").get();
         assertEquals(response.getStatus(), 200, response.getEntity(String.class));
     }

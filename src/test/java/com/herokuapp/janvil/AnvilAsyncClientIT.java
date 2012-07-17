@@ -22,7 +22,7 @@ import static org.testng.Assert.assertTrue;
  */
 public class AnvilAsyncClientIT extends BaseIT {
 
-    AnvilAsyncClient anvil;
+    private AnvilAsyncClient anvil;
 
     @BeforeMethod
     protected void setUp(Method method) throws Exception {

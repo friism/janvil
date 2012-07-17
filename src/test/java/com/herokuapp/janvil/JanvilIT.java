@@ -14,7 +14,7 @@ import static org.testng.Assert.assertTrue;
  */
 public class JanvilIT extends BaseIT {
 
-    Janvil janvil;
+    private Janvil janvil;
 
     @BeforeMethod
     protected void setUp(Method method) throws Exception {
@@ -23,9 +23,14 @@ public class JanvilIT extends BaseIT {
     }
 
     @Test
-    public void testDeploy() throws Exception {
-        Manifest m = new Manifest(new File("/Users/brainard/Development/devcenter-java"));
+    public void testBuild() throws Exception {
+        Manifest m = new Manifest(dir);
         m.addAll();
         janvil.build(m);
+    }
+
+    @Test
+    public void testRelease() throws Exception {
+        janvil.release(appName, "https://anvil-production.herokuapp.com/slugs/c51d5b81-d042-11e1-8327-2fad2fa1628b.tgz");
     }
 }

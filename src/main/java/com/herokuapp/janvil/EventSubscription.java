@@ -7,32 +7,36 @@ import java.util.*;
  */
 public final class EventSubscription<E extends Enum<E>> {
 
-    public static interface Subscriber {
-        void handle(DeployEvent event, Object data);
+    public static interface Subscriber<E> {
+        void handle(E event, Object data);
     }
 
-    private final Map<DeployEvent, Set<Subscriber>> subscribers = new EnumMap<DeployEvent, Set<Subscriber>>(DeployEvent.class);
+    private final Map<E, Set<Subscriber<E>>> subscribers;
 
-    void announce(DeployEvent event) {
+    public EventSubscription(Class<E> eClass) {
+        subscribers = new EnumMap<E, Set<Subscriber<E>>>(eClass);
+    }
+
+    void announce(E event) {
         announce(event, null);
     }
 
-    void announce(DeployEvent event, Object data) {
+    void announce(E event, Object data) {
         if (subscribers.containsKey(event)) {
-            for (Subscriber subscriber : subscribers.get(event)) {
+            for (Subscriber<E> subscriber : subscribers.get(event)) {
                 subscriber.handle(event, data);
             }
         }
     }
 
-    public EventSubscription subscribe(DeployEvent event, Subscriber subscriber) {
+    public EventSubscription<E> subscribe(E event, Subscriber<E> subscriber) {
         return subscribe(EnumSet.of(event), subscriber);
     }
 
-    public EventSubscription subscribe(EnumSet<DeployEvent> events, Subscriber subscriber) {
-        for (DeployEvent event : events) {
+    public EventSubscription<E> subscribe(EnumSet<E> events, Subscriber<E> subscriber) {
+        for (E event : events) {
             if (!subscribers.containsKey(event)) {
-                subscribers.put(event, new HashSet<Subscriber>());
+                subscribers.put(event, new HashSet<Subscriber<E>>());
             }
             subscribers.get(event).add(subscriber);
         }

@@ -24,7 +24,7 @@ public abstract class BaseIT {
     protected File subdirFile;
     protected Config config;
     protected String appName;
-    protected EventSubscription printAllEvents;
+    protected EventSubscription<Janvil.Event> printAllEvents;
 
     @BeforeMethod
     protected void setUp(Method method) throws Exception {
@@ -53,17 +53,19 @@ public abstract class BaseIT {
 
         appName = System.getenv("HEROKU_APP_NAME");
 
-        config = new Config(System.getenv("HEROKU_API_KEY"))
-                .setProtocol(Config.Protocol.HTTP)
-                .setConsumersUserAgent(getClass().getSimpleName() + "." + method.getName());
-
-        printAllEvents = new EventSubscription()
-                .subscribe(EnumSet.allOf(DeployEvent.class),
-                        new EventSubscription.Subscriber() {
-                            public void handle(DeployEvent event, Object data) {
+        printAllEvents = new EventSubscription<Janvil.Event>(Janvil.Event.class)
+                .subscribe(EnumSet.allOf(Janvil.Event.class),
+                        new EventSubscription.Subscriber<Janvil.Event>() {
+                            public void handle(Janvil.Event event, Object data) {
                                 System.out.println(event + ":" + data);
                             }
                         });
+
+        config = new Config(System.getenv("HEROKU_API_KEY"))
+                .setProtocol(Config.Protocol.HTTP)
+                .setConsumersUserAgent(getClass().getSimpleName() + "." + method.getName())
+                .setEventSubscription(printAllEvents);
+
     }
 
 }

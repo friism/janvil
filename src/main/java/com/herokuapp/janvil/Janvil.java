@@ -22,7 +22,7 @@ import static com.herokuapp.janvil.Janvil.Event.*;
  */
 public class Janvil {
 
-    static final Client client;
+    protected static final Client client;
 
     static {
         final ClientConfig config = new DefaultClientConfig();
@@ -46,11 +46,11 @@ public class Janvil {
         RELEASE_END
     }
 
-    private final AnvilApi anvil;
-    private final ReleasesApi releases;
-    private boolean writeMetadata;
-    private boolean readMetadata;
-    private final EventSubscription<Event> events;
+    protected final AnvilApi anvil;
+    protected final ReleasesApi releases;
+    protected boolean writeMetadata;
+    protected boolean readMetadata;
+    protected final EventSubscription<Event> events;
 
     public Janvil(String apiKey) {
         this(new Config(apiKey));
@@ -64,11 +64,23 @@ public class Janvil {
         events = config.getEventSubscription();
     }
 
-    public String build(Manifest manifest) throws IOException, ExecutionException, InterruptedException {
+    public String build(Manifest manifest) {
         return build(manifest, new HashMap<String, String>(), "");
     }
 
-    public String build(Manifest manifest, HashMap<String, String> env, String buildpack) throws InterruptedException, ExecutionException, IOException {
+    public String build(Manifest manifest, HashMap<String, String> env, String buildpack) {
+        try {
+            return _build(manifest, env, buildpack);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    protected String _build(Manifest manifest, HashMap<String, String> env, String buildpack) throws InterruptedException, ExecutionException, IOException {
         events.announce(DIFF_START, manifest.getEntries().size());
         final Collection filesToUpload = anvil.diff(manifest).get().getEntity(Collection.class);
         events.announce(DIFF_END, filesToUpload.size());
@@ -117,11 +129,21 @@ public class Janvil {
         return slugUrl;
     }
 
-    public void realese(String appName, Manifest manifest) throws ExecutionException, InterruptedException {
+    public void release(String appName, Manifest manifest) {
         release(appName, manifest.readSlugUrl());
     }
 
-    public void release(String appName, String slugUrl) throws InterruptedException, ExecutionException {
+    public void release(String appName, String slugUrl) {
+        try {
+            _release(appName, slugUrl);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    protected void _release(String appName, String slugUrl) throws InterruptedException, ExecutionException {
         events.announce(RELEASE_START, slugUrl);
         final ClientResponse releaseResponse = releases.release(appName, slugUrl, "Janvil").get();
         if (releaseResponse.getStatus() != HttpURLConnection.HTTP_OK) {

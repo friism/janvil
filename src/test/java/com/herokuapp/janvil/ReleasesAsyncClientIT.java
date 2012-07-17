@@ -18,7 +18,7 @@ public class ReleasesAsyncClientIT extends BaseIT {
     @BeforeMethod
     protected void setUp(Method method) throws Exception {
         super.setUp(method);
-        releases = new ReleasesAsyncClient(config);
+        releases = new ReleasesAsyncClient(Janvil.client, config);
     }
 
     @Test

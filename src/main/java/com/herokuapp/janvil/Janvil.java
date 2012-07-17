@@ -30,79 +30,47 @@ public class Janvil {
         client = com.sun.jersey.api.client.Client.create(config);
     }
 
-    public static final class Config {
-
-        final String apiKey;
-        Protocol protocol = Protocol.HTTPS;
-        String consumersUserAgent = null;
-
-        public Config(String apiKey) {
-            this.apiKey = apiKey;
-        }
-
-        public Config setProtocol(Protocol protocol) {
-            this.protocol = protocol;
-            return this;
-        }
-
-        public Config setConsumersUserAgent(String consumersUserAgent) {
-            this.consumersUserAgent = consumersUserAgent;
-            return this;
-        }
-    }
-
-    public static enum Protocol {
-        HTTP("http"),
-        HTTPS("https");
-
-        final String scheme;
-
-        Protocol(String scheme) {
-            this.scheme = scheme;
-        }
-    }
-
-    final AnvilAsyncClient anvil;
-    final ReleasesAsyncClient releases;
+    private final AnvilAsyncClient anvil;
+    private final ReleasesAsyncClient releases;
 
     public Janvil(String apiKey) {
         this(new Config(apiKey));
     }
 
     public Janvil(Config config) {
-        anvil = new AnvilAsyncClient(config);
-        releases = new ReleasesAsyncClient(config);
+        anvil = new AnvilAsyncClient(client, config);
+        releases = new ReleasesAsyncClient(client, config);
     }
 
     public void deploy(DeployRequest request) throws IOException, ExecutionException, InterruptedException {
-        request.eventSubscription.announce(EventSubscription.Event.DEPLOY_START);
+        request.eventSubscription().announce(EventSubscription.Event.DEPLOY_START);
 
-        request.eventSubscription.announce(EventSubscription.Event.DIFF_START, request.manifest.getEntries().size());
-        final Collection filesToUpload = anvil.diff(request.manifest).get().getEntity(Collection.class);
-        request.eventSubscription.announce(EventSubscription.Event.DIFF_END, filesToUpload.size());
+        request.eventSubscription().announce(EventSubscription.Event.DIFF_START, request.manifest().getEntries().size());
+        final Collection filesToUpload = anvil.diff(request.manifest()).get().getEntity(Collection.class);
+        request.eventSubscription().announce(EventSubscription.Event.DIFF_END, filesToUpload.size());
 
-        request.eventSubscription.announce(EventSubscription.Event.UPLOADS_START, filesToUpload.size());
+        request.eventSubscription().announce(EventSubscription.Event.UPLOADS_START, filesToUpload.size());
         final Map<File, Future<ClientResponse>> uploads = new HashMap<File, Future<ClientResponse>>(filesToUpload.size());
         for (Object hash : filesToUpload) {
-            final File file = request.manifest.fromHash(hash.toString());
-            request.eventSubscription.announce(EventSubscription.Event.UPLOAD_FILE_START, file);
+            final File file = request.manifest().fromHash(hash.toString());
+            request.eventSubscription().announce(EventSubscription.Event.UPLOAD_FILE_START, file);
             uploads.put(file, anvil.post(file));
         }
 
         for (Map.Entry<File, Future<ClientResponse>> upload : uploads.entrySet()) {
             try {
                 upload.getValue().get();
-                request.eventSubscription.announce(EventSubscription.Event.UPLOAD_FILE_END, upload.getKey());
+                request.eventSubscription().announce(EventSubscription.Event.UPLOAD_FILE_END, upload.getKey());
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             } catch (ExecutionException e) {
                 throw new RuntimeException(e);
             }
         }
-        request.eventSubscription.announce(EventSubscription.Event.UPLOADS_END);
+        request.eventSubscription().announce(EventSubscription.Event.UPLOADS_END);
 
-        request.eventSubscription.announce(EventSubscription.Event.BUILD_START);
-        final ClientResponse buildResponse = anvil.build(request.manifest, request.env, request.buildpack).get();
+        request.eventSubscription().announce(EventSubscription.Event.BUILD_START);
+        final ClientResponse buildResponse = anvil.build(request.manifest(), request.env(), request.buildpack()).get();
         final String slugUrl = buildResponse.getHeaders().get("X-Slug-Url").get(0);
 
         BufferedReader buildOutput = null;
@@ -110,52 +78,23 @@ public class Janvil {
             buildOutput = new BufferedReader(new InputStreamReader(buildResponse.getEntity(InputStream.class)));
             String line;
             while ((line = buildOutput.readLine()) != null) {
-                request.eventSubscription.announce(EventSubscription.Event.BUILD_OUTPUT_LINE, line);
+                request.eventSubscription().announce(EventSubscription.Event.BUILD_OUTPUT_LINE, line);
             }
         } finally {
             if (buildOutput != null) {
                 buildOutput.close();
             }
         }
-        request.eventSubscription.announce(EventSubscription.Event.BUILD_END, slugUrl);
+        request.eventSubscription().announce(EventSubscription.Event.BUILD_END, slugUrl);
 
-        request.eventSubscription.announce(EventSubscription.Event.RELEASE_START, slugUrl);
-        final ClientResponse releaseResponse = releases.release(request.appName, slugUrl, "Janvil").get();
+        request.eventSubscription().announce(EventSubscription.Event.RELEASE_START, slugUrl);
+        final ClientResponse releaseResponse = releases.release(request.appName(), slugUrl, "Janvil").get();
         if (releaseResponse.getStatus() != HttpURLConnection.HTTP_OK) {
             throw new UniformInterfaceException(releaseResponse);
         }
-        request.eventSubscription.announce(EventSubscription.Event.RELEASE_END, releaseResponse.getEntity(Map.class).get("release"));
+        request.eventSubscription().announce(EventSubscription.Event.RELEASE_END, releaseResponse.getEntity(Map.class).get("release"));
 
-        request.eventSubscription.announce(EventSubscription.Event.DEPLOY_END);
+        request.eventSubscription().announce(EventSubscription.Event.DEPLOY_END);
     }
 
-    public static final class DeployRequest {
-        private Manifest manifest;
-        private String appName;
-        private HashMap<String, String> env;
-        private String buildpack = "";
-        private EventSubscription eventSubscription;
-
-        public DeployRequest(Manifest manifest, String appName) {
-            this.manifest = manifest;
-            this.appName = appName;
-            this.env = new HashMap<String, String>();
-            this.eventSubscription = new EventSubscription();
-        }
-
-        public DeployRequest setEnv(HashMap<String, String> env) {
-            this.env = env;
-            return this;
-        }
-
-        public DeployRequest setBuildpack(String buildpack) {
-            this.buildpack = buildpack;
-            return this;
-        }
-
-        public DeployRequest setEventSubscription(EventSubscription eventSubscription) {
-            this.eventSubscription = eventSubscription;
-            return this;
-        }
-    }
 }

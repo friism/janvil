@@ -27,7 +27,7 @@ public class AnvilAsyncClientIT extends BaseIT {
     @BeforeMethod
     protected void setUp(Method method) throws Exception {
         super.setUp(method);
-        anvil = new AnvilAsyncClient(config);
+        anvil = new AnvilAsyncClient(Janvil.client, config);
     }
 
     @Test

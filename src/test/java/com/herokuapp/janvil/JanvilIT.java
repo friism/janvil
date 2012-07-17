@@ -4,9 +4,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.HashMap;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -28,6 +26,6 @@ public class JanvilIT extends BaseIT {
     public void testDeploy() throws Exception {
         Manifest m = new Manifest(new File("/Users/brainard/Development/devcenter-java"));
         m.addAll();
-        janvil.deploy(new Janvil.DeployRequest(m, appName).setEventSubscription(printAllEvents));
+        janvil.deploy(new DeployRequest(m, appName).eventSubscription(printAllEvents));
     }
 }

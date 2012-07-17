@@ -22,7 +22,7 @@ public abstract class BaseIT {
     protected File randomContentsFile;
     protected File subdir;
     protected File subdirFile;
-    protected Janvil.Config config;
+    protected Config config;
     protected String appName;
     protected EventSubscription printAllEvents;
 
@@ -53,8 +53,8 @@ public abstract class BaseIT {
 
         appName = System.getenv("HEROKU_APP_NAME");
 
-        config = new Janvil.Config(System.getenv("HEROKU_API_KEY"))
-                .setProtocol(Janvil.Protocol.HTTP)
+        config = new Config(System.getenv("HEROKU_API_KEY"))
+                .setProtocol(Config.Protocol.HTTP)
                 .setConsumersUserAgent(getClass().getSimpleName() + "." + method.getName());
 
         printAllEvents = new EventSubscription()

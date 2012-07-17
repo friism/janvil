@@ -1,5 +1,6 @@
 package com.herokuapp.janvil;
 
+import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.multipart.FormDataMultiPart;
 import com.sun.jersey.multipart.file.FileDataBodyPart;
@@ -17,8 +18,8 @@ import static com.herokuapp.janvil.CurlFormDataContentDisposition.curlize;
  */
 class AnvilAsyncClient extends AbstractAsyncClient {
 
-    AnvilAsyncClient(Janvil.Config config) {
-        super(config, "anvil-production.herokuapp.com");
+    AnvilAsyncClient(Client client, Config config) {
+        super(client, config, "anvil-production.herokuapp.com");
     }
 
     public Future<ClientResponse> post(Manifest manifest) throws IOException {

@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import static com.herokuapp.janvil.DeployEvent.*;
+
 /**
  * @author Ryan Brainard
  */
@@ -43,33 +45,33 @@ public class Janvil {
     }
 
     public void deploy(DeployRequest request) throws IOException, ExecutionException, InterruptedException {
-        request.eventSubscription().announce(EventSubscription.Event.DEPLOY_START);
+        request.eventSubscription().announce(DEPLOY_START);
 
-        request.eventSubscription().announce(EventSubscription.Event.DIFF_START, request.manifest().getEntries().size());
+        request.eventSubscription().announce(DIFF_START, request.manifest().getEntries().size());
         final Collection filesToUpload = anvil.diff(request.manifest()).get().getEntity(Collection.class);
-        request.eventSubscription().announce(EventSubscription.Event.DIFF_END, filesToUpload.size());
+        request.eventSubscription().announce(DIFF_END, filesToUpload.size());
 
-        request.eventSubscription().announce(EventSubscription.Event.UPLOADS_START, filesToUpload.size());
+        request.eventSubscription().announce(UPLOADS_START, filesToUpload.size());
         final Map<File, Future<ClientResponse>> uploads = new HashMap<File, Future<ClientResponse>>(filesToUpload.size());
         for (Object hash : filesToUpload) {
             final File file = request.manifest().fromHash(hash.toString());
-            request.eventSubscription().announce(EventSubscription.Event.UPLOAD_FILE_START, file);
+            request.eventSubscription().announce(UPLOAD_FILE_START, file);
             uploads.put(file, anvil.post(file));
         }
 
         for (Map.Entry<File, Future<ClientResponse>> upload : uploads.entrySet()) {
             try {
                 upload.getValue().get();
-                request.eventSubscription().announce(EventSubscription.Event.UPLOAD_FILE_END, upload.getKey());
+                request.eventSubscription().announce(UPLOAD_FILE_END, upload.getKey());
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             } catch (ExecutionException e) {
                 throw new RuntimeException(e);
             }
         }
-        request.eventSubscription().announce(EventSubscription.Event.UPLOADS_END);
+        request.eventSubscription().announce(UPLOADS_END);
 
-        request.eventSubscription().announce(EventSubscription.Event.BUILD_START);
+        request.eventSubscription().announce(BUILD_START);
         final ClientResponse buildResponse = anvil.build(request.manifest(), request.env(), request.buildpack()).get();
         final String slugUrl = buildResponse.getHeaders().get("X-Slug-Url").get(0);
 
@@ -78,23 +80,23 @@ public class Janvil {
             buildOutput = new BufferedReader(new InputStreamReader(buildResponse.getEntity(InputStream.class)));
             String line;
             while ((line = buildOutput.readLine()) != null) {
-                request.eventSubscription().announce(EventSubscription.Event.BUILD_OUTPUT_LINE, line);
+                request.eventSubscription().announce(BUILD_OUTPUT_LINE, line);
             }
         } finally {
             if (buildOutput != null) {
                 buildOutput.close();
             }
         }
-        request.eventSubscription().announce(EventSubscription.Event.BUILD_END, slugUrl);
+        request.eventSubscription().announce(BUILD_END, slugUrl);
 
-        request.eventSubscription().announce(EventSubscription.Event.RELEASE_START, slugUrl);
+        request.eventSubscription().announce(RELEASE_START, slugUrl);
         final ClientResponse releaseResponse = releases.release(request.appName(), slugUrl, "Janvil").get();
         if (releaseResponse.getStatus() != HttpURLConnection.HTTP_OK) {
             throw new UniformInterfaceException(releaseResponse);
         }
-        request.eventSubscription().announce(EventSubscription.Event.RELEASE_END, releaseResponse.getEntity(Map.class).get("release"));
+        request.eventSubscription().announce(RELEASE_END, releaseResponse.getEntity(Map.class).get("release"));
 
-        request.eventSubscription().announce(EventSubscription.Event.DEPLOY_END);
+        request.eventSubscription().announce(DEPLOY_END);
     }
 
 }

@@ -58,9 +58,9 @@ public abstract class BaseIT {
                 .setConsumersUserAgent(getClass().getSimpleName() + "." + method.getName());
 
         printAllEvents = new EventSubscription()
-                .subscribe(EnumSet.allOf(EventSubscription.Event.class),
+                .subscribe(EnumSet.allOf(DeployEvent.class),
                         new EventSubscription.Subscriber() {
-                            public void handle(EventSubscription.Event event, Object data) {
+                            public void handle(DeployEvent event, Object data) {
                                 System.out.println(event + ":" + data);
                             }
                         });

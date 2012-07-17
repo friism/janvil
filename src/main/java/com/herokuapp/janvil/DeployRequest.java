@@ -11,13 +11,13 @@ public final class DeployRequest {
     private String appName;
     private HashMap<String, String> env;
     private String buildpack = "";
-    private EventSubscription eventSubscription;
+    private EventSubscription<DeployEvent> eventSubscription;
 
     public DeployRequest(Manifest manifest, String appName) {
         this.manifest = manifest;
         this.appName = appName;
         this.env = new HashMap<String, String>();
-        this.eventSubscription = new EventSubscription();
+        this.eventSubscription = new EventSubscription<DeployEvent>();
     }
 
     public DeployRequest env(HashMap<String, String> env) {
@@ -30,7 +30,7 @@ public final class DeployRequest {
         return this;
     }
 
-    public DeployRequest eventSubscription(EventSubscription eventSubscription) {
+    public DeployRequest eventSubscription(EventSubscription<DeployEvent> eventSubscription) {
         this.eventSubscription = eventSubscription;
         return this;
     }
@@ -51,7 +51,8 @@ public final class DeployRequest {
         return buildpack;
     }
 
-    public EventSubscription eventSubscription() {
+    public EventSubscription<DeployEvent> eventSubscription() {
         return eventSubscription;
     }
+
 }

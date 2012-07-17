@@ -62,23 +62,23 @@ public class Janvil {
         }
     }
 
-    final AnvilApiClient anvil;
-    final ReleasesApiClient releases;
+    final AnvilAsyncClient anvil;
+    final ReleasesAsyncClient releases;
 
     public Janvil(String apiKey) {
         this(new Config(apiKey));
     }
 
     public Janvil(Config config) {
-        anvil = new AnvilApiClient(config);
-        releases = new ReleasesApiClient(config);
+        anvil = new AnvilAsyncClient(config);
+        releases = new ReleasesAsyncClient(config);
     }
 
-    public void deploy(DeployRequest request) throws IOException {
+    public void deploy(DeployRequest request) throws IOException, ExecutionException, InterruptedException {
         request.eventSubscription.announce(EventSubscription.Event.DEPLOY_START);
 
         request.eventSubscription.announce(EventSubscription.Event.DIFF_START, request.manifest.getEntries().size());
-        final Collection filesToUpload = anvil.diff(request.manifest).getEntity(Collection.class);
+        final Collection filesToUpload = anvil.diff(request.manifest).get().getEntity(Collection.class);
         request.eventSubscription.announce(EventSubscription.Event.DIFF_END, filesToUpload.size());
 
         request.eventSubscription.announce(EventSubscription.Event.UPLOADS_START, filesToUpload.size());
@@ -102,7 +102,7 @@ public class Janvil {
         request.eventSubscription.announce(EventSubscription.Event.UPLOADS_END);
 
         request.eventSubscription.announce(EventSubscription.Event.BUILD_START);
-        final ClientResponse buildResponse = anvil.build(request.manifest, request.env, request.buildpack);
+        final ClientResponse buildResponse = anvil.build(request.manifest, request.env, request.buildpack).get();
         final String slugUrl = buildResponse.getHeaders().get("X-Slug-Url").get(0);
 
         BufferedReader buildOutput = null;
@@ -120,7 +120,7 @@ public class Janvil {
         request.eventSubscription.announce(EventSubscription.Event.BUILD_END, slugUrl);
 
         request.eventSubscription.announce(EventSubscription.Event.RELEASE_START, slugUrl);
-        final ClientResponse releaseResponse = releases.release(request.appName, slugUrl, "Janvil");
+        final ClientResponse releaseResponse = releases.release(request.appName, slugUrl, "Janvil").get();
         if (releaseResponse.getStatus() != HttpURLConnection.HTTP_OK) {
             throw new UniformInterfaceException(releaseResponse);
         }

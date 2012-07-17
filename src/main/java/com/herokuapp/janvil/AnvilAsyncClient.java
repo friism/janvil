@@ -15,14 +15,14 @@ import static com.herokuapp.janvil.CurlFormDataContentDisposition.curlize;
 /**
  * @author Ryan Brainard
  */
-class AnvilApiClient extends AbstractApiClient {
+class AnvilAsyncClient extends AbstractAsyncClient {
 
-    AnvilApiClient(Janvil.Config config) {
+    AnvilAsyncClient(Janvil.Config config) {
         super(config, "anvil-production.herokuapp.com");
     }
 
-    public ClientResponse post(Manifest manifest) throws IOException {
-        return baseResource
+    public Future<ClientResponse> post(Manifest manifest) throws IOException {
+        return base
                 .path("/manifest")
                 .type(MediaType.MULTIPART_FORM_DATA_TYPE)
                 .accept(MediaType.APPLICATION_JSON_TYPE)
@@ -30,8 +30,8 @@ class AnvilApiClient extends AbstractApiClient {
                         .field("manifest", manifest.getEntries(), MediaType.APPLICATION_JSON_TYPE));
     }
 
-    public ClientResponse build(Manifest manifest, Map<String,String> env, String buildpack) throws IOException {
-        return baseResource
+    public Future<ClientResponse> build(Manifest manifest, Map<String, String> env, String buildpack) throws IOException {
+        return base
                 .path("/manifest/build")
                 .type(MediaType.MULTIPART_FORM_DATA_TYPE)
                 .accept(MediaType.APPLICATION_JSON_TYPE)
@@ -42,8 +42,8 @@ class AnvilApiClient extends AbstractApiClient {
                 );
     }
 
-    public ClientResponse diff(Manifest manifest) throws IOException {
-        return baseResource
+    public Future<ClientResponse> diff(Manifest manifest) throws IOException {
+        return base
                 .path("/manifest/diff")
                 .type(MediaType.MULTIPART_FORM_DATA_TYPE)
                 .accept(MediaType.APPLICATION_JSON_TYPE)
@@ -52,7 +52,7 @@ class AnvilApiClient extends AbstractApiClient {
     }
 
     public Future<ClientResponse> post(File file) throws IOException {
-        return asyncBaseResource
+        return base
                 .path("/file/" + Manifest.hash(file))
                 .type(MediaType.MULTIPART_FORM_DATA_TYPE)
                 .post(ClientResponse.class, new FormDataMultiPart()
@@ -60,14 +60,14 @@ class AnvilApiClient extends AbstractApiClient {
 
     }
 
-    public ClientResponse get(String hash) throws IOException {
-        return baseResource
+    public Future<ClientResponse> get(String hash) throws IOException {
+        return base
                 .path("/file/" + hash)
                 .accept(MediaType.APPLICATION_OCTET_STREAM_TYPE)
                 .get(ClientResponse.class);
     }
 
-    public ClientResponse get(File file) throws IOException {
+    public Future<ClientResponse> get(File file) throws IOException {
         return get(Manifest.hash(file));
     }
 

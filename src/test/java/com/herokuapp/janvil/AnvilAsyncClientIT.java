@@ -13,57 +13,56 @@ import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.Future;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 /**
  * @author Ryan Brainard
  */
-public class AnvilApiClientIT extends BaseIT {
+public class AnvilAsyncClientIT extends BaseIT {
 
-    AnvilApiClient anvil;
+    AnvilAsyncClient anvil;
 
     @BeforeMethod
     protected void setUp(Method method) throws Exception {
         super.setUp(method);
-        anvil = new AnvilApiClient(config);
+        anvil = new AnvilAsyncClient(config);
     }
 
     @Test
     public void testPostManifest() throws Exception {
         final Manifest manifest = createManifest();
-        assertEquals(anvil.post(manifest).getEntity(String.class), "ok");
+        assertEquals(anvil.post(manifest).get().getEntity(String.class), "ok");
     }
 
     @Test
     public void testDiffManifest() throws Exception {
         final Manifest manifest = createManifest();
-        final Collection diff = anvil.diff(manifest).getEntity(Collection.class);
+        final Collection diff = anvil.diff(manifest).get().getEntity(Collection.class);
         assertEquals(diff, Collections.singleton(Manifest.hash(randomContentsFile)));
     }
 
     @Test
     public void testBuildManifest() throws Exception {
         final Manifest manifest = createManifest();
-        final String response = anvil.build(manifest, new HashMap<String, String>(), "").getEntity(String.class);
+        final String response = anvil.build(manifest, new HashMap<String, String>(), "").get().getEntity(String.class);
         assertTrue(response.contains("Success, slug is "), response);
     }
 
     @Test
     public void testPostFile() throws Exception {
-        final ClientResponse before = anvil.get(randomContentsFile);
+        final ClientResponse before = anvil.get(randomContentsFile).get();
         assertEquals(before.getStatus(), HttpURLConnection.HTTP_BAD_GATEWAY);
 
         anvil.post(randomContentsFile).get();
-        assertEquals(Files.toString(anvil.get(randomContentsFile).getEntity(File.class), Charset.defaultCharset()),
+        assertEquals(Files.toString(anvil.get(randomContentsFile).get().getEntity(File.class), Charset.defaultCharset()),
                      Files.toString(randomContentsFile, Charset.defaultCharset()));
     }
 
     @Test
     public void testGetFile() throws Exception {
-        assertEquals(Files.toString(anvil.get(staticContentsFile).getEntity(File.class), Charset.defaultCharset()),
+        assertEquals(Files.toString(anvil.get(staticContentsFile).get().getEntity(File.class), Charset.defaultCharset()),
                 Files.toString(staticContentsFile, Charset.defaultCharset()));
     }
 

@@ -48,7 +48,8 @@ public class Janvil {
 
     private final AnvilApi anvil;
     private final ReleasesApi releases;
-
+    private boolean writeMetadata;
+    private boolean readMetadata;
     private final EventSubscription<Event> events;
 
     public Janvil(String apiKey) {
@@ -56,9 +57,11 @@ public class Janvil {
     }
 
     public Janvil(Config config) {
-        events = config.getEventSubscription();
         anvil = new AnvilApi(client, config);
         releases = new ReleasesApi(client, config);
+        writeMetadata = config.getWriteMetadata();
+        readMetadata = config.getReadMetadata();
+        events = config.getEventSubscription();
     }
 
     public String build(Manifest manifest) throws IOException, ExecutionException, InterruptedException {
@@ -85,7 +88,8 @@ public class Janvil {
         events.announce(UPLOADS_END);
 
         events.announce(BUILD_START);
-        final ClientResponse buildResponse = anvil.build(manifest, env, buildpack, manifest.readCacheUrl()).get();
+        final String existingCacheUrl = readMetadata ? manifest.readCacheUrl() : "";
+        final ClientResponse buildResponse = anvil.build(manifest, env, buildpack, existingCacheUrl).get();
 
         BufferedReader buildOutput = null;
         try {
@@ -102,8 +106,11 @@ public class Janvil {
 
         final String slugUrl = buildResponse.getHeaders().get("X-Slug-Url").get(0);
         final String cacheUrl = buildResponse.getHeaders().get("X-Cache-Url").get(0);
-        manifest.writeSlugUrl(slugUrl);
-        manifest.writeCacheUrl(cacheUrl);
+
+        if (writeMetadata) {
+            manifest.writeSlugUrl(slugUrl);
+            manifest.writeCacheUrl(cacheUrl);
+        }
 
         events.announce(BUILD_END, slugUrl);
 

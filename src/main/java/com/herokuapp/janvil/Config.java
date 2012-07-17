@@ -9,6 +9,8 @@ public final class Config {
     private Protocol protocol = Protocol.HTTPS;
     private String consumersUserAgent = null;
     private EventSubscription<Janvil.Event> eventSubscription;
+    private boolean writeMetadata = true;
+    private boolean readMetadata = true;
 
     public Config(String apiKey) {
         this.apiKey = apiKey;
@@ -30,20 +32,38 @@ public final class Config {
         return this;
     }
 
-    public String getApiKey() {
+    public Config setWriteMetadata(boolean writeMetadata) {
+        this.writeMetadata = writeMetadata;
+        return this;
+    }
+
+    public Config setReadMetadata(boolean readMetadata) {
+        this.readMetadata = readMetadata;
+        return this;
+    }
+
+    String getApiKey() {
         return apiKey;
     }
 
-    public Protocol getProtocol() {
+    Protocol getProtocol() {
         return protocol;
     }
 
-    public String getConsumersUserAgent() {
+    String getConsumersUserAgent() {
         return consumersUserAgent;
     }
 
-    public EventSubscription<Janvil.Event> getEventSubscription() {
+    EventSubscription<Janvil.Event> getEventSubscription() {
         return eventSubscription;
+    }
+
+    boolean getWriteMetadata() {
+        return writeMetadata;
+    }
+
+    boolean getReadMetadata() {
+        return readMetadata;
     }
 
     public static enum Protocol {

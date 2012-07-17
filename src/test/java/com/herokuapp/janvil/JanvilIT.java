@@ -7,6 +7,7 @@ import java.io.File;
 import java.lang.reflect.Method;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 /**
@@ -24,9 +25,18 @@ public class JanvilIT extends BaseIT {
 
     @Test
     public void testBuild() throws Exception {
+        final File cache = new File(dir, ".anvil/cache");
+        final File slug = new File(dir, ".anvil/slug");
+
+        assertFalse(cache.exists());
+        assertFalse(slug.exists());
+
         Manifest m = new Manifest(dir);
         m.addAll();
         janvil.build(m);
+
+        assertTrue(cache.exists());
+        assertTrue(slug.exists());
     }
 
     @Test

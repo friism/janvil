@@ -6,11 +6,11 @@ import com.sun.jersey.api.client.Client;
 /**
  * @author Ryan Brainard
  */
-abstract class AbstractAsyncClient {
+abstract class AbstractApi {
 
     protected final AsyncWebResource base;
 
-    AbstractAsyncClient(Client client, Config config, String host) {
+    AbstractApi(Client client, Config config, String host) {
         final String baseUrl = config.getProtocol().scheme + "://" + host;
         final UserAgentFilter userAgentFilter = new UserAgentFilter(config.getConsumersUserAgent());
 

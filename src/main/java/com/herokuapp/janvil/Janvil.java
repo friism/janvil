@@ -46,8 +46,8 @@ public class Janvil {
         RELEASE_END
     }
 
-    private final AnvilAsyncClient anvil;
-    private final ReleasesAsyncClient releases;
+    private final AnvilApi anvil;
+    private final ReleasesApi releases;
 
     private final EventSubscription<Event> events;
 
@@ -57,8 +57,8 @@ public class Janvil {
 
     public Janvil(Config config) {
         events = config.getEventSubscription();
-        anvil = new AnvilAsyncClient(client, config);
-        releases = new ReleasesAsyncClient(client, config);
+        anvil = new AnvilApi(client, config);
+        releases = new ReleasesApi(client, config);
     }
 
     public String build(Manifest manifest) throws IOException, ExecutionException, InterruptedException {
@@ -85,8 +85,7 @@ public class Janvil {
         events.announce(UPLOADS_END);
 
         events.announce(BUILD_START);
-        final ClientResponse buildResponse = anvil.build(manifest, env, buildpack).get();
-        final String slugUrl = buildResponse.getHeaders().get("X-Slug-Url").get(0);
+        final ClientResponse buildResponse = anvil.build(manifest, env, buildpack, manifest.readCacheUrl()).get();
 
         BufferedReader buildOutput = null;
         try {
@@ -100,9 +99,19 @@ public class Janvil {
                 buildOutput.close();
             }
         }
+
+        final String slugUrl = buildResponse.getHeaders().get("X-Slug-Url").get(0);
+        final String cacheUrl = buildResponse.getHeaders().get("X-Cache-Url").get(0);
+        manifest.writeSlugUrl(slugUrl);
+        manifest.writeCacheUrl(cacheUrl);
+
         events.announce(BUILD_END, slugUrl);
 
         return slugUrl;
+    }
+
+    public void realese(String appName, Manifest manifest) throws ExecutionException, InterruptedException {
+        release(appName, manifest.readSlugUrl());
     }
 
     public void release(String appName, String slugUrl) throws InterruptedException, ExecutionException {
@@ -113,4 +122,5 @@ public class Janvil {
         }
         events.announce(RELEASE_END, releaseResponse.getEntity(Map.class).get("release"));
     }
+
 }

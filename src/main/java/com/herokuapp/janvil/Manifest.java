@@ -2,9 +2,7 @@ package com.herokuapp.janvil;
 
 import org.codehaus.jackson.annotate.JsonProperty;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
@@ -91,6 +89,10 @@ public class Manifest {
         baseDirPattern = Pattern.compile(Pattern.quote(baseDir.getCanonicalPath() + File.separator));
     }
 
+    public File getBaseDir() {
+        return baseDir;
+    }
+
     public void add(File file) throws IOException {
         final Entry entry = new Entry(file);
         entries.put(relPath(file), entry);
@@ -129,4 +131,83 @@ public class Manifest {
             add(child);
         }
     }
+
+    void writeCacheUrl(String cacheUrl) {
+        writeMetadata("cache", cacheUrl);
+    }
+
+    void writeSlugUrl(String slugUrl) {
+        writeMetadata("slug", slugUrl);
+    }
+
+    String readCacheUrl() {
+        return readMetadata("cache");
+    }
+
+    String readSlugUrl() {
+        return readMetadata("slug");
+    }
+
+    private File createMetadataDir() {
+        final File anvilDir = new File(baseDir, ".anvil");
+        if (!anvilDir.exists()) {
+            anvilDir.mkdir();
+        }
+        return anvilDir;
+    }
+
+    private void writeMetadata(String filename, String data) {
+        final File metadataDir = createMetadataDir();
+
+        final File file = new File(metadataDir, filename);
+        if (file.exists()) {
+            file.delete();
+        }
+
+        PrintWriter writer = null;
+        try {
+            file.createNewFile();
+            writer = new PrintWriter(file);
+            writer.append(data);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (writer != null) {
+                writer.close();
+            }
+        }
+    }
+
+    private String readMetadata(String filename) {
+        final File metadataDir = createMetadataDir();
+        final File file = new File(metadataDir, filename);
+        final StringBuilder buffer = new StringBuilder();
+
+        FileReader reader = null;
+        try {
+            reader = new FileReader(file);
+
+            int i;
+            while ((i = reader.read()) != -1) {
+                buffer.append((char) i);
+            }
+        } catch (FileNotFoundException e) {
+            // ignore
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    // ignore
+                }
+            }
+        }
+
+        return buffer.toString();
+    }
+
 }

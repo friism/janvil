@@ -20,14 +20,14 @@ import static org.testng.Assert.assertTrue;
 /**
  * @author Ryan Brainard
  */
-public class AnvilAsyncClientIT extends BaseIT {
+public class AnvilApiIT extends BaseIT {
 
-    private AnvilAsyncClient anvil;
+    private AnvilApi anvil;
 
     @BeforeMethod
     protected void setUp(Method method) throws Exception {
         super.setUp(method);
-        anvil = new AnvilAsyncClient(Janvil.client, config);
+        anvil = new AnvilApi(Janvil.client, config);
     }
 
     @Test
@@ -46,7 +46,7 @@ public class AnvilAsyncClientIT extends BaseIT {
     @Test
     public void testBuildManifest() throws Exception {
         final Manifest manifest = createManifest();
-        final String response = anvil.build(manifest, new HashMap<String, String>(), "").get().getEntity(String.class);
+        final String response = anvil.build(manifest, new HashMap<String, String>(), "", "").get().getEntity(String.class);
         assertTrue(response.contains("Success, slug is "), response);
     }
 

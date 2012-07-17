@@ -11,14 +11,14 @@ import static org.testng.Assert.assertEquals;
 /**
  * @author Ryan Brainard
  */
-public class ReleasesAsyncClientIT extends BaseIT {
+public class ReleasesApiIT extends BaseIT {
 
-    private ReleasesAsyncClient releases;
+    private ReleasesApi releases;
 
     @BeforeMethod
     protected void setUp(Method method) throws Exception {
         super.setUp(method);
-        releases = new ReleasesAsyncClient(Janvil.client, config);
+        releases = new ReleasesApi(Janvil.client, config);
     }
 
     @Test

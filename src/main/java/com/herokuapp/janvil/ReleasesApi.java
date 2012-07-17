@@ -10,9 +10,9 @@ import java.util.concurrent.Future;
 /**
  * @author Ryan Brainard
  */
-class ReleasesAsyncClient extends AbstractAsyncClient {
+class ReleasesApi extends AbstractApi {
 
-    ReleasesAsyncClient(Client client, Config config) {
+    ReleasesApi(Client client, Config config) {
         super(client, config, "releases-test.herokuapp.com");
         base.addFilter(new HTTPBasicAuthFilter("", config.getApiKey()));
     }

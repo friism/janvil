@@ -16,9 +16,9 @@ import static com.herokuapp.janvil.CurlFormDataContentDisposition.curlize;
 /**
  * @author Ryan Brainard
  */
-class AnvilAsyncClient extends AbstractAsyncClient {
+class AnvilApi extends AbstractApi {
 
-    AnvilAsyncClient(Client client, Config config) {
+    AnvilApi(Client client, Config config) {
         super(client, config, "anvil-production.herokuapp.com");
     }
 
@@ -31,7 +31,7 @@ class AnvilAsyncClient extends AbstractAsyncClient {
                         .field("manifest", manifest.getEntries(), MediaType.APPLICATION_JSON_TYPE));
     }
 
-    public Future<ClientResponse> build(Manifest manifest, Map<String, String> env, String buildpack) throws IOException {
+    public Future<ClientResponse> build(Manifest manifest, Map<String, String> env, String buildpack, String cacheUrl) throws IOException {
         return base
                 .path("/manifest/build")
                 .type(MediaType.MULTIPART_FORM_DATA_TYPE)
@@ -40,6 +40,7 @@ class AnvilAsyncClient extends AbstractAsyncClient {
                         .field("manifest", manifest.getEntries(), MediaType.APPLICATION_JSON_TYPE)
                         .field("env", env, MediaType.APPLICATION_JSON_TYPE)
                         .field("buildpack", buildpack)
+                        .field("cacheUrl", cacheUrl)
                 );
     }
 

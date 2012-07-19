@@ -148,8 +148,20 @@ public class Manifest {
         return readMetadata("slug");
     }
 
+    void deleteCacheUrl(String cacheUrl) {
+        deleteMetadata("cache", cacheUrl);
+    }
+
+    void deleteSlugUrl(String slugUrl) {
+        deleteMetadata("slug", slugUrl);
+    }
+
+    private File metadataDir() {
+        return new File(baseDir, ".anvil");
+    }
+
     private File createMetadataDir() {
-        final File anvilDir = new File(baseDir, ".anvil");
+        final File anvilDir = metadataDir();
         if (!anvilDir.exists()) {
             anvilDir.mkdir();
         }
@@ -208,6 +220,11 @@ public class Manifest {
         }
 
         return buffer.toString();
+    }
+
+    private void deleteMetadata(String filename, String data) {
+        final File metadataDir = metadataDir();
+        new File(metadataDir, filename).delete();
     }
 
 }

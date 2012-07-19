@@ -19,7 +19,7 @@ import static com.herokuapp.janvil.CurlFormDataContentDisposition.curlize;
 class AnvilApi extends AbstractApi {
 
     AnvilApi(Client client, Config config) {
-        super(client, config, "anvil-production.herokuapp.com");
+        super(client, config, "api.anvilworks.org");
     }
 
     public Future<ClientResponse> post(Manifest manifest) throws IOException {

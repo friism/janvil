@@ -40,7 +40,7 @@ class AnvilApi extends AbstractApi {
                         .field("manifest", manifest.getEntries(), MediaType.APPLICATION_JSON_TYPE)
                         .field("env", env, MediaType.APPLICATION_JSON_TYPE)
                         .field("buildpack", buildpack)
-                        .field("cacheUrl", cacheUrl)
+                        .field("cache", cacheUrl)
                 );
     }
 

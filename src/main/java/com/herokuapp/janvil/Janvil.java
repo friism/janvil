@@ -68,7 +68,7 @@ public class Janvil {
         return build(manifest, new HashMap<String, String>(), "");
     }
 
-    public String build(Manifest manifest, HashMap<String, String> env, String buildpack) {
+    public String build(Manifest manifest, Map<String, String> env, String buildpack) {
         try {
             return _build(manifest, env, buildpack);
         } catch (InterruptedException e) {
@@ -80,7 +80,7 @@ public class Janvil {
         }
     }
 
-    protected String _build(Manifest manifest, HashMap<String, String> env, String buildpack) throws InterruptedException, ExecutionException, IOException {
+    protected String _build(Manifest manifest, Map<String, String> env, String buildpack) throws InterruptedException, ExecutionException, IOException {
         events.announce(DIFF_START, manifest.getEntries().size());
         final Collection filesToUpload = anvil.diff(manifest).get().getEntity(Collection.class);
         events.announce(DIFF_END, filesToUpload.size());

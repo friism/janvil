@@ -43,7 +43,8 @@ public class Janvil {
         BUILD_END,
         BUILD_OUTPUT_LINE,
         RELEASE_START,
-        RELEASE_END
+        RELEASE_END,
+        HTTP_LOGGING_BYTE
     }
 
     protected final AnvilApi anvil;

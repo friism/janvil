@@ -57,6 +57,11 @@ public abstract class BaseIT {
                 .subscribe(EnumSet.allOf(Janvil.Event.class),
                         new EventSubscription.Subscriber<Janvil.Event>() {
                             public void handle(Janvil.Event event, Object data) {
+                                if (event == Janvil.Event.HTTP_LOGGING_BYTE) {
+                                    System.out.print(Character.toChars((Integer) data));
+                                    return;
+                                }
+
                                 System.out.println(event + ":" + data);
                             }
                         });

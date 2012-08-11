@@ -30,4 +30,10 @@ public class ReleasesApiIT extends BaseIT {
         assertEquals(response.getStatus(), 200, response.getEntity(String.class));
     }
 
+    @Test
+    public void testCopy() throws Exception {
+        final ClientResponse response = releases.copy(appName, appName).get();
+        assertEquals(response.getStatus(), 200, response.getEntity(String.class));
+    }
+
 }

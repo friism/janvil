@@ -58,7 +58,16 @@ public abstract class BaseIT {
                         new EventSubscription.Subscriber<Janvil.Event>() {
                             public void handle(Janvil.Event event, Object data) {
                                 if (event == Janvil.Event.HTTP_LOGGING_BYTE) {
-                                    System.out.print(Character.toChars((Integer) data));
+                                    final Integer codePoint = (Integer) data;
+
+                                    final char[] chars;
+                                    if (codePoint < 0 || codePoint > Character.MAX_CODE_POINT) {
+                                        chars = "?".toCharArray();
+                                    } else {
+                                        chars = Character.toChars(codePoint);
+                                    }
+
+                                    System.out.print(chars);
                                     return;
                                 }
 

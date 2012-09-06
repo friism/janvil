@@ -106,7 +106,7 @@ public class Janvil {
 
         BufferedReader buildOutput = null;
         try {
-            buildOutput = new BufferedReader(new InputStreamReader(buildResponse.getEntity(InputStream.class)));
+            buildOutput = new BufferedReader(new InputStreamReader(buildResponse.getEntity(InputStream.class)), 80);
             String line;
             while ((line = buildOutput.readLine()) != null) {
                 // strip null chars from keepalive=1

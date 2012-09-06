@@ -6,6 +6,7 @@ import org.testng.annotations.BeforeMethod;
 import java.io.File;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
+import java.util.Date;
 import java.util.EnumSet;
 import java.util.UUID;
 
@@ -73,7 +74,7 @@ public abstract class BaseIT {
                                     return;
                                 }
 
-                                System.out.println(event + ":" + data);
+                                System.out.println(new Date() + ": " + event + ":" + data);
                             }
                         });
 

@@ -1,4 +1,4 @@
-package com.herokuapp.janvil;
+package com.heroku.janvil;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;

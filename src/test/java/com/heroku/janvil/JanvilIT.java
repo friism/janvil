@@ -1,4 +1,4 @@
-package com.herokuapp.janvil;
+package com.heroku.janvil;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;

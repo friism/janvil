@@ -1,4 +1,4 @@
-package com.herokuapp.janvil;
+package com.heroku.janvil;
 
 import java.io.IOException;
 import java.io.OutputStream;

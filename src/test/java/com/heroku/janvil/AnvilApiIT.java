@@ -1,4 +1,4 @@
-package com.herokuapp.janvil;
+package com.heroku.janvil;
 
 import com.google.common.io.Files;
 import com.sun.jersey.api.client.ClientResponse;

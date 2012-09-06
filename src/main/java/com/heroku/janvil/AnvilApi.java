@@ -1,4 +1,4 @@
-package com.herokuapp.janvil;
+package com.heroku.janvil;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
@@ -10,8 +10,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.Future;
-
-import static com.herokuapp.janvil.CurlFormDataContentDisposition.curlize;
 
 /**
  * @author Ryan Brainard
@@ -59,7 +57,7 @@ class AnvilApi extends AbstractApi {
                 .path("/file/" + Manifest.hash(file))
                 .type(MediaType.MULTIPART_FORM_DATA_TYPE)
                 .post(ClientResponse.class, new FormDataMultiPart()
-                        .bodyPart(curlize(new FileDataBodyPart("data", file))));
+                        .bodyPart(CurlFormDataContentDisposition.curlize(new FileDataBodyPart("data", file))));
 
     }
 

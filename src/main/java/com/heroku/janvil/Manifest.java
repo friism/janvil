@@ -1,4 +1,4 @@
-package com.herokuapp.janvil;
+package com.heroku.janvil;
 
 import org.codehaus.jackson.annotate.JsonProperty;
 

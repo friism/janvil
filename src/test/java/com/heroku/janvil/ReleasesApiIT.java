@@ -1,4 +1,4 @@
-package com.herokuapp.janvil;
+package com.heroku.janvil;
 
 import com.sun.jersey.api.client.ClientResponse;
 import org.testng.annotations.BeforeMethod;

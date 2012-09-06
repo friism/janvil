@@ -41,6 +41,7 @@ class AnvilApi extends AbstractApi {
                         .field("env", env, MediaType.APPLICATION_JSON_TYPE)
                         .field("buildpack", buildpack)
                         .field("cache", cacheUrl)
+                        .field("keepalive", "1")
                 );
     }
 

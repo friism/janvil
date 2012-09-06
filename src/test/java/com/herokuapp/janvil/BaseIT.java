@@ -61,7 +61,9 @@ public abstract class BaseIT {
                                     final Integer codePoint = (Integer) data;
 
                                     final char[] chars;
-                                    if (codePoint < 0 || codePoint > Character.MAX_CODE_POINT) {
+                                    if (codePoint == Character.MIN_CODE_POINT) {
+                                        chars = "NUL".toCharArray();
+                                    } else if (codePoint > Character.MAX_CODE_POINT) {
                                         chars = "?".toCharArray();
                                     } else {
                                         chars = Character.toChars(codePoint);

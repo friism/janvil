@@ -7,7 +7,8 @@ import org.testng.annotations.Test;
 import java.lang.reflect.Method;
 import java.util.Map;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 /**
  * @author Ryan Brainard

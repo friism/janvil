@@ -1,9 +1,6 @@
 package com.heroku.janvil;
 
 import com.google.common.io.Files;
-import com.heroku.janvil.Config;
-import com.heroku.janvil.EventSubscription;
-import com.heroku.janvil.Janvil;
 import org.testng.annotations.BeforeMethod;
 
 import java.io.File;

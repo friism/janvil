@@ -1,7 +1,6 @@
 package com.heroku.janvil;
 
 import com.google.common.io.Files;
-import com.heroku.janvil.Manifest;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 

@@ -41,6 +41,6 @@ public class JanvilIT extends BaseIT {
 
     @Test
     public void testRelease() throws Exception {
-        janvil.release(appName, "https://anvil-production.herokuapp.com/slugs/c51d5b81-d042-11e1-8327-2fad2fa1628b.tgz");
+        janvil.release(appName, "https://anvil-production.herokuapp.com/slugs/c51d5b81-d042-11e1-8327-2fad2fa1628b.tgz", "Janvil");
     }
 }

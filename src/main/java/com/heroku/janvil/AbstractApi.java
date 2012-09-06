@@ -22,4 +22,9 @@ abstract class AbstractApi {
             base.addFilter(new LoggingFilter(new EventAnnouncingPrintStream(config.getEventSubscription())));
         }
     }
+
+    protected static String herokuHost() {
+        final String custom = System.getenv("HEROKU_HOST");
+        return custom != null ? custom : "heroku.com";
+    }
 }

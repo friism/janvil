@@ -54,8 +54,12 @@ public abstract class BaseIT {
 
         appName = System.getenv("HEROKU_APP_NAME");
 
+
+        final EnumSet<Janvil.Event> debugLevelOnly = EnumSet.of(Janvil.Event.HTTP_LOGGING_BYTE);
+        final EnumSet<Janvil.Event> infoLevelOnly = EnumSet.complementOf(debugLevelOnly);
+
         printAllEvents = new EventSubscription<Janvil.Event>(Janvil.Event.class)
-                .subscribe(EnumSet.allOf(Janvil.Event.class),
+                .subscribe(infoLevelOnly,
                         new EventSubscription.Subscriber<Janvil.Event>() {
                             public void handle(Janvil.Event event, Object data) {
                                 if (event == Janvil.Event.HTTP_LOGGING_BYTE) {
@@ -74,7 +78,7 @@ public abstract class BaseIT {
                                     return;
                                 }
 
-                                System.out.println(new Date() + ": " + event + ":" + data);
+                                System.out.println(new Date() + ":" + event + ":" + data);
                             }
                         });
 

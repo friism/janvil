@@ -43,4 +43,8 @@ public final class EventSubscription<E extends Enum<E>> {
 
         return this;
     }
+
+    public Set<E> getSubscribedEvents() {
+        return subscribers.keySet();
+    }
 }

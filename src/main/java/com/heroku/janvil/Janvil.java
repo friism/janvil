@@ -155,14 +155,6 @@ public class Janvil {
         events.announce(RELEASE_END, releaseResponse.getEntity(Map.class).get("release"));
     }
 
-    public void copy(String sourceAppName, String targetAppName) {
-        copy(sourceAppName, targetAppName, new ReleaseDescriptionBuilder() {
-            public String buildDescription(String sourceAppName, String sourceReleaseName, String sourceCommit, String targetAppName) {
-                return "Copy " + sourceAppName + " " + sourceReleaseName + (sourceCommit != null ? " " + sourceCommit : "");
-            }
-        });
-    }
-
     public void copy(String sourceAppName, String targetAppName, ReleaseDescriptionBuilder releaseDescriptionBuilder) {
         try {
             _copy(sourceAppName, targetAppName, releaseDescriptionBuilder);

@@ -6,7 +6,7 @@
 
     <groupId>com.heroku.janvil</groupId>
     <artifactId>janvil</artifactId>
-    <version>0.1-BETA-SNAPSHOT</version>
+    <version>0.2-BETA-SNAPSHOT</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

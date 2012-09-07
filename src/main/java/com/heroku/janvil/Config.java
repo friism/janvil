@@ -12,6 +12,8 @@ public final class Config {
     private boolean writeSlugUrl = false;
     private boolean writeCacheUrl = true;
     private boolean readCacheUrl = true;
+    private String herokuUser;
+    private String herokuApp;
 
     public Config(String apiKey) {
         this.apiKey = apiKey;
@@ -48,6 +50,16 @@ public final class Config {
         return this;
     }
 
+    public Config setHerokuUser(String herokuUser) {
+        this.herokuUser = herokuUser;
+        return this;
+    }
+
+    public Config setHerokuApp(String herokuApp) {
+        this.herokuApp = herokuApp;
+        return this;
+    }
+
     String getApiKey() {
         return apiKey;
     }
@@ -74,6 +86,14 @@ public final class Config {
 
     boolean getReadCacheUrl() {
         return readCacheUrl;
+    }
+
+    String getHerokuUser() {
+        return herokuUser;
+    }
+
+    String getHerokuApp() {
+        return herokuApp;
     }
 
     public static enum Protocol {

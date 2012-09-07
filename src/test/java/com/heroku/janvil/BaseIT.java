@@ -59,7 +59,7 @@ public abstract class BaseIT {
         final EnumSet<Janvil.Event> infoLevelOnly = EnumSet.complementOf(debugLevelOnly);
 
         printAllEvents = new EventSubscription<Janvil.Event>(Janvil.Event.class)
-                .subscribe(infoLevelOnly,
+                .subscribe(debugLevelOnly,
                         new EventSubscription.Subscriber<Janvil.Event>() {
                             public void handle(Janvil.Event event, Object data) {
                                 if (event == Janvil.Event.HTTP_LOGGING_BYTE) {
@@ -84,7 +84,8 @@ public abstract class BaseIT {
 
         config = new Config(System.getenv("HEROKU_API_KEY"))
                 .setProtocol(Config.Protocol.HTTP)
-                .setConsumersUserAgent(getClass().getSimpleName() + "." + method.getName())
+                .setHerokuApp(appName)
+                .setHerokuUser(method.getName() + "@" + getClass().getSimpleName())
                 .setEventSubscription(printAllEvents);
 
     }

@@ -13,14 +13,16 @@ abstract class AbstractApi {
 
     AbstractApi(Client client, Config config, String host) {
         final String baseUrl = config.getProtocol().scheme + "://" + host;
-        final UserAgentFilter userAgentFilter = new UserAgentFilter(config.getConsumersUserAgent());
 
         base = client.asyncResource(baseUrl);
-        base.addFilter(userAgentFilter);
 
+        // filters get applied in reverse, so this should always go first
         if (config.getEventSubscription().getSubscribedEvents().contains(Janvil.Event.HTTP_LOGGING_BYTE)) {
             base.addFilter(new LoggingFilter(new EventAnnouncingPrintStream(config.getEventSubscription())));
         }
+
+        base.addFilter(new UserAgentFilter(config.getConsumersUserAgent()));
+        base.addFilter(new HerokuMetaMetricsFilter(config.getHerokuUser(), config.getHerokuApp()));
     }
 
     protected static String herokuHost() {

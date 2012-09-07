@@ -50,7 +50,7 @@ public class Manifest {
         try {
             md = MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            throw new JanvilRuntimeException(e);
         }
 
         FileInputStream fis = null;
@@ -182,9 +182,9 @@ public class Manifest {
             writer = new PrintWriter(file);
             writer.append(data);
         } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
+            throw new JanvilRuntimeException(e);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new JanvilRuntimeException(e);
         } finally {
             if (writer != null) {
                 writer.close();

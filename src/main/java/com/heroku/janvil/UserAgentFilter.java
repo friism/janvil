@@ -36,7 +36,7 @@ public class UserAgentFilter extends ClientFilter {
         try {
             projectProperties.load(UserAgentFilter.class.getClassLoader().getResourceAsStream("janvil.properties"));
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new JanvilRuntimeException(e);
         }
         return projectProperties.get("project.artifactId") + "/" + projectProperties.get("project.version");
     }

@@ -43,6 +43,12 @@ class AnvilApi extends AbstractApi {
                 );
     }
 
+    public Future<ClientResponse> exitStatus(String manifestId) throws IOException {
+        return base
+                .path("/exit/" + manifestId)
+                .get(ClientResponse.class);
+    }
+
     public Future<ClientResponse> diff(Manifest manifest) throws IOException {
         return base
                 .path("/manifest/diff")

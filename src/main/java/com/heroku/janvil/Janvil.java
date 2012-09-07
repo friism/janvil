@@ -78,11 +78,11 @@ public class Janvil {
         try {
             return _build(manifest, env, buildpack);
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            throw new JanvilRuntimeException(e);
         } catch (ExecutionException e) {
-            throw new RuntimeException(e);
+            throw new JanvilRuntimeException(e);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new JanvilRuntimeException(e);
         }
     }
 
@@ -109,6 +109,10 @@ public class Janvil {
         final String existingCacheUrl = readMetadata ? manifest.readCacheUrl() : "";
         final ClientResponse buildResponse = anvil.build(manifest, env, buildpack, existingCacheUrl).get();
 
+        final String manifestId = buildResponse.getHeaders().get("X-Manifest-Id").get(0);
+        final String slugUrl = buildResponse.getHeaders().get("X-Slug-Url").get(0);
+        final String cacheUrl = buildResponse.getHeaders().get("X-Cache-Url").get(0);
+
         BufferedReader buildOutput = null;
         try {
             buildOutput = new BufferedReader(new InputStreamReader(buildResponse.getEntityInputStream(), "UTF-8"));
@@ -123,8 +127,10 @@ public class Janvil {
             }
         }
 
-        final String slugUrl = buildResponse.getHeaders().get("X-Slug-Url").get(0);
-        final String cacheUrl = buildResponse.getHeaders().get("X-Cache-Url").get(0);
+        final int exitStatus = Integer.parseInt(anvil.exitStatus(manifestId).get().getEntity(String.class).trim());
+        if (exitStatus != 0) {
+            throw new JanvilBuildException(exitStatus);
+        }
 
         if (writeMetadata) {
             manifest.writeSlugUrl(slugUrl);
@@ -140,9 +146,9 @@ public class Janvil {
         try {
             _release(appName, slugUrl, description);
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            throw new JanvilRuntimeException(e);
         } catch (ExecutionException e) {
-            throw new RuntimeException(e);
+            throw new JanvilRuntimeException(e);
         }
     }
 
@@ -159,9 +165,9 @@ public class Janvil {
         try {
             _copy(sourceAppName, targetAppName, releaseDescriptionBuilder);
         } catch (ExecutionException e) {
-            throw new RuntimeException(e);
+            throw new JanvilRuntimeException(e);
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            throw new JanvilRuntimeException(e);
         }
     }
 

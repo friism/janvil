@@ -5,9 +5,10 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.util.Collections;
+import java.util.Map;
 
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 
 /**
  * @author Ryan Brainard
@@ -36,6 +37,18 @@ public class JanvilIT extends BaseIT {
 
         assertTrue(cache.exists());
         assertTrue(slug.exists());
+    }
+
+    @Test
+    public void testBuildFailure() throws Exception {
+        Manifest m = new Manifest(dir);
+        m.addAll();
+        try {
+            janvil.build(m, Collections.<String,String>emptyMap(), "INVALID_BUILDPACK");
+            fail();
+        } catch (JanvilBuildException e) {
+            assertEquals(1, e.getExitStatus());
+        }
     }
 
     @Test

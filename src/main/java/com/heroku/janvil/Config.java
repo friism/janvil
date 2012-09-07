@@ -9,8 +9,9 @@ public final class Config {
     private Protocol protocol = Protocol.HTTPS;
     private String consumersUserAgent = null;
     private EventSubscription<Janvil.Event> eventSubscription;
-    private boolean writeMetadata = true;
-    private boolean readMetadata = true;
+    private boolean writeSlugUrl = false;
+    private boolean writeCacheUrl = true;
+    private boolean readCacheUrl = true;
 
     public Config(String apiKey) {
         this.apiKey = apiKey;
@@ -32,13 +33,18 @@ public final class Config {
         return this;
     }
 
-    public Config setWriteMetadata(boolean writeMetadata) {
-        this.writeMetadata = writeMetadata;
+    public Config setWriteSlugUrl(boolean writeSlugUrl) {
+        this.writeSlugUrl = writeSlugUrl;
         return this;
     }
 
-    public Config setReadMetadata(boolean readMetadata) {
-        this.readMetadata = readMetadata;
+    public Config setWriteCacheUrl(boolean writeCacheUrl) {
+        this.writeCacheUrl = writeCacheUrl;
+        return this;
+    }
+
+    public Config setReadCacheUrl(boolean readCacheUrl) {
+        this.readCacheUrl = readCacheUrl;
         return this;
     }
 
@@ -58,12 +64,16 @@ public final class Config {
         return eventSubscription;
     }
 
-    boolean getWriteMetadata() {
-        return writeMetadata;
+    boolean getWriteSlugUrl() {
+        return writeSlugUrl;
     }
 
-    boolean getReadMetadata() {
-        return readMetadata;
+    boolean getWriteCacheUrl() {
+        return writeCacheUrl;
+    }
+
+    boolean getReadCacheUrl() {
+        return readCacheUrl;
     }
 
     public static enum Protocol {

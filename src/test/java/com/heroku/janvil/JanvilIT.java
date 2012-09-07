@@ -36,7 +36,7 @@ public class JanvilIT extends BaseIT {
         janvil.build(m);
 
         assertTrue(cache.exists());
-        assertTrue(slug.exists());
+        assertFalse(slug.exists());
     }
 
     @Test

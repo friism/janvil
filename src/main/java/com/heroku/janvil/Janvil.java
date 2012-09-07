@@ -53,8 +53,9 @@ public class Janvil {
     protected final AnvilApi anvil;
     protected final CoreReleasesApi coreReleases;
     protected final IdealizedReleasesApi idealReleases;
-    protected boolean writeMetadata;
-    protected boolean readMetadata;
+    protected final boolean writeSlugUrl;
+    protected final boolean writeCacheUrl;
+    protected final boolean readCacheUrl;
     protected final EventSubscription<Event> events;
 
     public Janvil(String apiKey) {
@@ -65,8 +66,9 @@ public class Janvil {
         anvil = new AnvilApi(client, config);
         coreReleases = new CoreReleasesApi(client, config);
         idealReleases = new IdealizedReleasesApi(client, config);
-        writeMetadata = config.getWriteMetadata();
-        readMetadata = config.getReadMetadata();
+        writeSlugUrl = config.getWriteSlugUrl();
+        writeCacheUrl = config.getWriteCacheUrl();
+        readCacheUrl = config.getReadCacheUrl();
         events = config.getEventSubscription();
     }
 
@@ -106,7 +108,7 @@ public class Janvil {
         events.announce(UPLOADS_END, uploads.size());
 
         events.announce(BUILD_START);
-        final String existingCacheUrl = readMetadata ? manifest.readCacheUrl() : "";
+        final String existingCacheUrl = readCacheUrl ? manifest.readCacheUrl() : "";
         final ClientResponse buildResponse = anvil.build(manifest, env, buildpack, existingCacheUrl).get();
 
         final String manifestId = buildResponse.getHeaders().get("X-Manifest-Id").get(0);
@@ -132,9 +134,12 @@ public class Janvil {
             throw new JanvilBuildException(exitStatus);
         }
 
-        if (writeMetadata) {
-            manifest.writeSlugUrl(slugUrl);
+        if (writeCacheUrl) {
             manifest.writeCacheUrl(cacheUrl);
+        }
+
+        if (writeSlugUrl) {
+            manifest.writeSlugUrl(slugUrl);
         }
 
         events.announce(BUILD_END, slugUrl);

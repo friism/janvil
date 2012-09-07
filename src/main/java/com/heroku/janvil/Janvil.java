@@ -103,7 +103,7 @@ public class Janvil {
             upload.getValue().get();
             events.announce(UPLOAD_FILE_END, upload.getKey());
         }
-        events.announce(UPLOADS_END);
+        events.announce(UPLOADS_END, uploads.size());
 
         events.announce(BUILD_START);
         final String existingCacheUrl = readMetadata ? manifest.readCacheUrl() : "";

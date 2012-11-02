@@ -45,14 +45,18 @@ public class Janvil {
         BUILD_START,
         BUILD_END,
         BUILD_OUTPUT_LINE,
+        PROMOTE_START,
+        PROMOTE_END,
         RELEASE_START,
         RELEASE_END,
+        COPY_START,
+        COPY_END,
+        POLLING,
         HTTP_LOGGING_BYTE
     }
 
     protected final AnvilApi anvil;
-    protected final CoreReleasesApi coreReleases;
-    protected final IdealizedReleasesApi idealReleases;
+    protected final CisaurusApi cisaurusApi;
     protected final boolean writeSlugUrl;
     protected final boolean writeCacheUrl;
     protected final boolean readCacheUrl;
@@ -64,8 +68,7 @@ public class Janvil {
 
     public Janvil(Config config) {
         anvil = new AnvilApi(client, config);
-        coreReleases = new CoreReleasesApi(client, config);
-        idealReleases = new IdealizedReleasesApi(client, config);
+        cisaurusApi = new CisaurusApi(client, config);
         writeSlugUrl = config.getWriteSlugUrl();
         writeCacheUrl = config.getWriteCacheUrl();
         readCacheUrl = config.getReadCacheUrl();
@@ -158,12 +161,9 @@ public class Janvil {
     }
 
     protected void _release(String appName, String slugUrl, String description) throws InterruptedException, ExecutionException {
-        events.announce(RELEASE_START, slugUrl);
-        final ClientResponse releaseResponse = idealReleases.release(appName, slugUrl, description).get();
-        if (releaseResponse.getStatus() != HttpURLConnection.HTTP_OK) {
-            throw new UniformInterfaceException(releaseResponse);
-        }
-        events.announce(RELEASE_END, releaseResponse.getEntity(Map.class).get("release"));
+        events.announce(RELEASE_START);
+        final String release = handleAsyncRelease(cisaurusApi.release(appName, slugUrl, description));
+        events.announce(RELEASE_END, release);
     }
 
     public void copy(String sourceAppName, String targetAppName, ReleaseDescriptionBuilder releaseDescriptionBuilder) {
@@ -177,17 +177,49 @@ public class Janvil {
     }
 
     protected void _copy(String sourceAppName, String targetAppName, ReleaseDescriptionBuilder releaseDescriptionBuilder) throws ExecutionException, InterruptedException {
-        final Map source = coreReleases.getReleasesSlug(sourceAppName).get().getEntity(Map.class);
-        final String sourceSlugUrl = source.get("slug_url").toString();
-        final String sourceReleaseName = source.get("name").toString();
-        final String sourceCommit = coreReleases.getRelease(sourceAppName, sourceReleaseName).get().getEntity(Map.class).get("commit").toString();
-        final String description = releaseDescriptionBuilder.buildDescription(sourceAppName, sourceReleaseName, sourceCommit, targetAppName);
+        events.announce(COPY_START);
+        final String description = releaseDescriptionBuilder.buildDescription(sourceAppName, targetAppName);
+        final String release = handleAsyncRelease(cisaurusApi.copy(sourceAppName, targetAppName, description));
+        events.announce(COPY_END, release);
+    }
 
-        _release(targetAppName, sourceSlugUrl, description);
+    public void promote(String appName) {
+        try {
+            _promote(appName);
+        } catch (InterruptedException e) {
+            throw new JanvilRuntimeException(e);
+        } catch (ExecutionException e) {
+            throw new JanvilRuntimeException(e);
+        }
+    }
+
+    protected void _promote(String appName) throws InterruptedException, ExecutionException {
+        events.announce(PROMOTE_START);
+        final String release = handleAsyncRelease(cisaurusApi.promote(appName));
+        events.announce(PROMOTE_END, release);
+    }
+
+    protected String handleAsyncRelease(Future<ClientResponse> initialResponse) throws ExecutionException, InterruptedException {
+        final ClientResponse releaseResponse = cisaurusApi.poll(initialResponse.get(), new PollingListener());
+        if (releaseResponse.getStatus() != HttpURLConnection.HTTP_OK) {
+            throw new UniformInterfaceException(releaseResponse);
+        }
+        return releaseResponse.getEntity(Map.class).get("release").toString();
     }
 
     public static interface ReleaseDescriptionBuilder {
-        String buildDescription(String sourceAppName, String sourceReleaseName, String sourceCommit, String targetAppName);
+        String buildDescription(String sourceAppName, String targetAppName);
+    }
+
+    private class PollingListener implements Runnable {
+        public void run() {
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            events.announce(POLLING);
+        }
     }
 
 }

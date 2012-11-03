@@ -11,6 +11,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <com.sun.jersey.version>1.8</com.sun.jersey.version>
+        <com.heroku.api.version>0.14</com.heroku.api.version>
     </properties>
 
     <dependencies>
@@ -29,8 +30,27 @@
             <artifactId>jersey-multipart</artifactId>
             <version>${com.sun.jersey.version}</version>
         </dependency>
-
         <!-- Test Dependencies -->
+
+        <dependency>
+            <groupId>com.heroku.api</groupId>
+            <artifactId>heroku-api</artifactId>
+            <version>${com.heroku.api.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.heroku.api</groupId>
+            <artifactId>heroku-http-jersey-client</artifactId>
+            <version>${com.heroku.api.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.heroku.api</groupId>
+            <artifactId>heroku-json-jersey-client</artifactId>
+            <version>${com.heroku.api.version}</version>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>

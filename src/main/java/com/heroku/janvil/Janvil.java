@@ -14,6 +14,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -151,41 +152,52 @@ public class Janvil {
     }
 
     public void release(String appName, String slugUrl, String description) {
-        try {
-            _release(appName, slugUrl, description);
-        } catch (InterruptedException e) {
-            throw new JanvilRuntimeException(e);
-        } catch (ExecutionException e) {
-            throw new JanvilRuntimeException(e);
-        }
+        _release(appName, slugUrl, description, null);
     }
 
-    protected void _release(String appName, String slugUrl, String description) throws InterruptedException, ExecutionException {
+    public void release(String appName, String slugUrl, String description, String commitHead) {
+        _release(appName, slugUrl, description, commitHead);
+    }
+
+    protected void _release(String appName, String slugUrl, String description, String commitHead) {
         events.announce(RELEASE_START);
-        final String release = handleAsyncRelease(cisaurusApi.release(appName, slugUrl, description));
+        final String release = handleAsyncRelease(cisaurusApi.release(appName, slugUrl, description, commitHead));
         events.announce(RELEASE_END, release);
     }
 
-    public void copy(String sourceAppName, String targetAppName, ReleaseDescriptionBuilder releaseDescriptionBuilder) {
-        try {
-            _copy(sourceAppName, targetAppName, releaseDescriptionBuilder);
-        } catch (ExecutionException e) {
-            throw new JanvilRuntimeException(e);
-        } catch (InterruptedException e) {
-            throw new JanvilRuntimeException(e);
-        }
-    }
-
-    protected void _copy(String sourceAppName, String targetAppName, ReleaseDescriptionBuilder releaseDescriptionBuilder) throws ExecutionException, InterruptedException {
+    public void copy(String sourceAppName, String targetAppName, String description) {
         events.announce(COPY_START);
-        final String description = releaseDescriptionBuilder.buildDescription(sourceAppName, targetAppName);
         final String release = handleAsyncRelease(cisaurusApi.copy(sourceAppName, targetAppName, description));
         events.announce(COPY_END, release);
     }
 
     public void promote(String appName) {
+        events.announce(PROMOTE_START);
+        final String release = handleAsyncRelease(cisaurusApi.promote(appName));
+        events.announce(PROMOTE_END, release);
+    }
+
+    public List<String> downstreams(String appName) {
+        //noinspection unchecked
+        return futureAs(cisaurusApi.downstreams(appName), List.class);
+    }
+
+    public void addDownstream(String appName, String downstreamAppName) {
+        futureAs(cisaurusApi.addDownstream(appName, downstreamAppName), String.class);
+    }
+
+    public void removeDownstream(String appName, String downstreamAppName) {
+        futureAs(cisaurusApi.removeDownstream(appName, downstreamAppName), String.class);
+    }
+
+    public List<String> diffDownstream(String appName) {
+        //noinspection unchecked
+        return futureAs(cisaurusApi.diffDownstream(appName), List.class);
+    }
+
+    protected <T> T futureAs(Future<ClientResponse> responseFuture, Class<T> as) {
         try {
-            _promote(appName);
+            return responseFuture.get().getEntity(as);
         } catch (InterruptedException e) {
             throw new JanvilRuntimeException(e);
         } catch (ExecutionException e) {
@@ -193,14 +205,15 @@ public class Janvil {
         }
     }
 
-    protected void _promote(String appName) throws InterruptedException, ExecutionException {
-        events.announce(PROMOTE_START);
-        final String release = handleAsyncRelease(cisaurusApi.promote(appName));
-        events.announce(PROMOTE_END, release);
-    }
-
-    protected String handleAsyncRelease(Future<ClientResponse> initialResponse) throws ExecutionException, InterruptedException {
-        final ClientResponse releaseResponse = cisaurusApi.poll(initialResponse.get(), new PollingListener());
+    protected String handleAsyncRelease(Future<ClientResponse> initialResponse) {
+        final ClientResponse releaseResponse;
+        try {
+            releaseResponse = cisaurusApi.poll(initialResponse.get(), new PollingListener());
+        } catch (ExecutionException e) {
+            throw new JanvilRuntimeException(e);
+        } catch (InterruptedException e) {
+            throw new JanvilRuntimeException(e);
+        }
         if (releaseResponse.getStatus() != HttpURLConnection.HTTP_OK) {
             throw new UniformInterfaceException(releaseResponse);
         }

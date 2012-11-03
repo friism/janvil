@@ -1,6 +1,8 @@
 package com.heroku.janvil;
 
 import com.google.common.io.Files;
+import com.heroku.api.App;
+import com.heroku.api.HerokuAPI;
 import org.testng.annotations.BeforeMethod;
 
 import java.io.File;
@@ -24,11 +26,46 @@ public abstract class BaseIT {
     protected File subdir;
     protected File subdirFile;
     protected Config config;
-    protected String appName;
+    protected HerokuAPI herokuApi;
     protected EventSubscription<Janvil.Event> printAllEvents;
+
+    protected interface AppRunnable {
+        void run(App app) throws Exception;
+    }
+
+    protected interface AppsRunnable {
+        void run(App[] apps)  throws Exception;
+    }
+
+    protected void withApp(final AppRunnable appRunnable) throws Exception {
+        withApps(1, new AppsRunnable() {
+            public void run(App[] apps) throws Exception {
+                appRunnable.run(apps[0]);
+            }
+        });
+    }
+
+    protected void withApps(int qty, AppsRunnable appsRunnable) throws Exception {
+        final App[] apps = new App[qty];
+        try {
+            for (int i = 0; i < apps.length; i++) {
+                apps[i] = herokuApi.createApp();
+                System.out.println("Created app: " + apps[i].getName());
+            }
+            appsRunnable.run(apps);
+        } finally {
+            for (App app : apps) {
+                if (app == null) continue;
+                herokuApi.destroyApp(app.getName());
+                System.out.println("Destroyed app: " + app.getName());
+            }
+        }
+    }
 
     @BeforeMethod
     protected void setUp(Method method) throws Exception {
+        herokuApi = new HerokuAPI(System.getenv("HEROKU_API_KEY"));
+
         dir = Files.createTempDir();
 
         emptyFile = new File(dir, "empty.file");
@@ -51,9 +88,6 @@ public abstract class BaseIT {
 
         subdirFile = new File(subdir, "subdir.file");
         assertTrue(subdirFile.createNewFile());
-
-        appName = System.getenv("HEROKU_APP_NAME");
-
 
         final EnumSet<Janvil.Event> debugLevelOnly = EnumSet.of(Janvil.Event.HTTP_LOGGING_BYTE);
         final EnumSet<Janvil.Event> infoLevelOnly = EnumSet.complementOf(debugLevelOnly);
@@ -84,10 +118,10 @@ public abstract class BaseIT {
 
         config = new Config(System.getenv("HEROKU_API_KEY"))
                 .setProtocol(Config.Protocol.HTTP)
-                .setHerokuApp(appName)
                 .setHerokuUser(method.getName() + "@" + getClass().getSimpleName())
                 .setEventSubscription(printAllEvents);
 
     }
+
 
 }

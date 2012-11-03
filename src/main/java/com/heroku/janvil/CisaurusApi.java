@@ -44,7 +44,7 @@ public class CisaurusApi extends AbstractApi {
                 .delete(ClientResponse.class);
     }
 
-    public Future<ClientResponse> diff(String appName) {
+    public Future<ClientResponse> diffDownstream(String appName) {
         return v.path("/apps/" + appName + "/pipeline/diff")
                 .accept(MediaType.APPLICATION_JSON_TYPE)
                 .get(ClientResponse.class);
@@ -57,7 +57,7 @@ public class CisaurusApi extends AbstractApi {
     }
 
     public Future<ClientResponse> copy(String sourceApp, String targetApp, String description) {
-        return v.path("/apps/" + sourceApp + "/copy/" + description)
+        return v.path("/apps/" + sourceApp + "/copy/" + targetApp)
                 .queryParam("description", description)
                 .accept(MediaType.APPLICATION_JSON_TYPE)
                 .post(ClientResponse.class);

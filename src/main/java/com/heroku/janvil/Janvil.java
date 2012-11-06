@@ -7,6 +7,7 @@ import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
 
+import javax.ws.rs.core.MediaType;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -20,6 +21,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import static com.heroku.janvil.Janvil.Event.*;
+import static javax.ws.rs.core.MediaType.*;
 
 /**
  * @author Ryan Brainard
@@ -196,13 +198,31 @@ public class Janvil {
     }
 
     protected <T> T futureAs(Future<ClientResponse> responseFuture, Class<T> as) {
+        final ClientResponse response;
         try {
-            return responseFuture.get().getEntity(as);
+            response = responseFuture.get();
         } catch (InterruptedException e) {
             throw new JanvilRuntimeException(e);
         } catch (ExecutionException e) {
             throw new JanvilRuntimeException(e);
         }
+
+        if (response.getStatus() == HttpURLConnection.HTTP_OK) {
+            return response.getEntity(as);
+        }
+
+        final String error;
+        if (APPLICATION_JSON_TYPE.isCompatible(response.getType())) {
+            final Map errorMap = response.getEntity(Map.class);
+            if (errorMap.containsKey("error")) {
+                error = errorMap.get("error").toString();
+            } else {
+                throw new JanvilRuntimeException("UNKNOWN ERROR");
+            }
+        } else {
+            error = "UNKNOWN ERROR (" + response.getStatus()  + "): " + response.getEntity(String.class);
+        }
+        throw new JanvilRuntimeException(error);
     }
 
     protected String handleAsyncRelease(Future<ClientResponse> initialResponse) {

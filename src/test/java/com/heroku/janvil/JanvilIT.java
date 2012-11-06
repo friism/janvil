@@ -55,6 +55,26 @@ public class JanvilIT extends BaseIT {
     }
 
     @Test
+    public void testPipelinesBadApiKey() throws Exception {
+        try {
+            new Janvil(new Config("BAD_API_KEY").setProtocol(Config.Protocol.HTTP)).downstreams("java");
+            fail();
+        } catch (JanvilRuntimeException e) {
+            assertEquals(e.getMessage(), "No access to app java");
+        }
+    }
+
+    @Test
+    public void testPipelinesNoAppAccess() throws Exception {
+        try {
+            janvil.downstreams("java");
+            fail();
+        } catch (JanvilRuntimeException e) {
+            assertEquals(e.getMessage(), "No access to app java");
+        }
+    }
+
+    @Test
     public void testKitchenSink() throws Exception {
         withApps(2, new AppsRunnable() {
             public void run(App[] apps) throws Exception {

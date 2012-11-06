@@ -2,12 +2,10 @@ package com.heroku.janvil;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
 
-import javax.ws.rs.core.MediaType;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -181,23 +179,23 @@ public class Janvil {
 
     public List<String> downstreams(String appName) {
         //noinspection unchecked
-        return futureAs(cisaurusApi.downstreams(appName), List.class);
+        return handleAs(cisaurusApi.downstreams(appName), List.class);
     }
 
     public void addDownstream(String appName, String downstreamAppName) {
-        futureAs(cisaurusApi.addDownstream(appName, downstreamAppName), String.class);
+        handleAs(cisaurusApi.addDownstream(appName, downstreamAppName), String.class);
     }
 
     public void removeDownstream(String appName, String downstreamAppName) {
-        futureAs(cisaurusApi.removeDownstream(appName, downstreamAppName), String.class);
+        handleAs(cisaurusApi.removeDownstream(appName, downstreamAppName), String.class);
     }
 
     public List<String> diffDownstream(String appName) {
         //noinspection unchecked
-        return futureAs(cisaurusApi.diffDownstream(appName), List.class);
+        return handleAs(cisaurusApi.diffDownstream(appName), List.class);
     }
 
-    protected <T> T futureAs(Future<ClientResponse> responseFuture, Class<T> as) {
+    protected <T> T handleAs(Future<ClientResponse> responseFuture, Class<T> as) {
         final ClientResponse response;
         try {
             response = responseFuture.get();
@@ -207,6 +205,10 @@ public class Janvil {
             throw new JanvilRuntimeException(e);
         }
 
+        return handleAs(response, as);
+    }
+
+    private <T> T handleAs(ClientResponse response, Class<T> as) {
         if (response.getStatus() == HttpURLConnection.HTTP_OK) {
             return response.getEntity(as);
         }
@@ -234,14 +236,8 @@ public class Janvil {
         } catch (InterruptedException e) {
             throw new JanvilRuntimeException(e);
         }
-        if (releaseResponse.getStatus() != HttpURLConnection.HTTP_OK) {
-            throw new UniformInterfaceException(releaseResponse);
-        }
-        return releaseResponse.getEntity(Map.class).get("release").toString();
-    }
 
-    public static interface ReleaseDescriptionBuilder {
-        String buildDescription(String sourceAppName, String targetAppName);
+        return handleAs(releaseResponse, Map.class).get("release").toString();
     }
 
     private class PollingListener implements Runnable {
@@ -254,5 +250,4 @@ public class Janvil {
             events.announce(POLLING);
         }
     }
-
 }

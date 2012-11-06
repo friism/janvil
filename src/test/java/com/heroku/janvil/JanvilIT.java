@@ -75,6 +75,16 @@ public class JanvilIT extends BaseIT {
     }
 
     @Test
+    public void testPipelinesNoAppAccess_Async() throws Exception {
+        try {
+            janvil.promote("java");
+            fail();
+        } catch (JanvilRuntimeException e) {
+            assertEquals(e.getMessage(), "No access to app java");
+        }
+    }
+
+    @Test
     public void testKitchenSink() throws Exception {
         withApps(2, new AppsRunnable() {
             public void run(App[] apps) throws Exception {

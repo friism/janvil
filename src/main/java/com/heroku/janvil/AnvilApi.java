@@ -17,7 +17,7 @@ import java.util.concurrent.Future;
 class AnvilApi extends AbstractApi {
 
     AnvilApi(Client client, Config config) {
-        super(client, config, "api.anvilworks.org");
+        super(client, config, getEnvOrElse("ANVIL_HOST", "api.anvilworks.org"));
     }
 
     public Future<ClientResponse> post(Manifest manifest) throws IOException {

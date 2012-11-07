@@ -20,8 +20,7 @@ public class CisaurusApi extends AbstractApi {
     private final AsyncWebResource v;
 
     CisaurusApi(Client client, Config config) {
-        super(client, config, "cisaurus.herokuapp.com");
-//        super(client, config, "localhost:9000");
+        super(client, config, getEnvOrElse("CISAURUS_HOST", "cisaurus.herokuapp.com"));
         base.addFilter(new HTTPBasicAuthFilter("", config.getApiKey()));
         v = base.path("/v1");
     }

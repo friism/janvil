@@ -26,7 +26,11 @@ abstract class AbstractApi {
     }
 
     protected static String herokuHost() {
-        final String custom = System.getenv("HEROKU_HOST");
-        return custom != null ? custom : "heroku.com";
+        return getEnvOrElse("HEROKU_HOST", "heroku.com");
+    }
+
+    protected static String getEnvOrElse(String key, String orElse) {
+        final String get = System.getenv(key);
+        return get != null ? get : orElse;
     }
 }

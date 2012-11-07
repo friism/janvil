@@ -85,6 +85,20 @@ public class JanvilIT extends BaseIT {
     }
 
     @Test
+    public void testStandardNonOkHandlePipelinesErrors() throws Exception {
+        withApp(new AppRunnable() {
+            public void run(App app) throws Exception {
+                try {
+                    janvil.addDownstream(app.getName(), app.getName());
+                    fail();
+                } catch (JanvilRuntimeException e) {
+                    assertEquals(e.getMessage(), "Downstream app cannot be recursive");
+                }
+            }
+        });
+    }
+
+    @Test
     public void testKitchenSink() throws Exception {
         withApps(2, new AppsRunnable() {
             public void run(App[] apps) throws Exception {

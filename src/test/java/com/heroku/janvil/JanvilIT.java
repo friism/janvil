@@ -184,7 +184,7 @@ public class JanvilIT extends BaseIT {
                 assertEquals(noDiff.size(), 0);
 
                 final String commitHead = "1234567";
-                janvil.release(upstream, SLUG_NO_PROCFILE, "Kitchen Sink", commitHead);
+                janvil.release(upstream, SLUG_NO_PROCFILE, "testPipelinePromotion", commitHead);
 
                 final List<String> oneDiff = janvil.diffDownstream(upstream);
                 assertEquals(oneDiff.size(), 1);

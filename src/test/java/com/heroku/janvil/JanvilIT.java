@@ -20,9 +20,9 @@ import static org.testng.Assert.*;
  */
 public class JanvilIT extends BaseIT {
 
-    private static final String SLUG_WITH_PROCFILE = "https://api.anvilworks.org/slugs/422b0c41-290c-11e2-8ee7-3713214071f1.tgz";
     private static final String SLUG_NO_PROCFILE = "https://anvil-production.herokuapp.com/slugs/c51d5b81-d042-11e1-8327-2fad2fa1628b.tgz";
-    private static final String DEVCENTER_JAVA_CODON_DEPLOYED = "vast-waters-2206";
+    private static final String CODON_DEPLOYED_WITH_PROCFILE = "vast-waters-2206";
+    private static final String CODON_DEPLOYED_WITHOUT_PROCFILE = "strong-light-6119";
     private static final String WAR_DEPLOYED_APP = "desolate-gorge-3755";
 
     private Janvil janvil;
@@ -127,7 +127,12 @@ public class JanvilIT extends BaseIT {
 
     @Test
     public void testCopyOfCodonDeployedAppWithProcfile() throws Exception {
-        assertCopyOf(DEVCENTER_JAVA_CODON_DEPLOYED);
+        assertCopyOf(CODON_DEPLOYED_WITH_PROCFILE);
+    }
+
+    @Test
+    public void testCopyOfCodonDeployedAppWithoutProcfile() throws Exception {
+        assertCopyOf(CODON_DEPLOYED_WITHOUT_PROCFILE);
     }
 
     @Test
@@ -146,7 +151,7 @@ public class JanvilIT extends BaseIT {
                 final Map<String, String> sourcePs = sourceLastRelease.getPSTable();
                 final String sourceContent = testClient.resource(source.getWebUrl()).get(String.class);
 
-                final String description = "copy with procfile";
+                final String description = "copy";
                 janvil.copy(source.getName(), target.getName(), description);
 
                 final List<Release> targetReleases = herokuApi.listReleases(target.getName());

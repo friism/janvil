@@ -64,8 +64,6 @@ public abstract class BaseIT {
 
     @BeforeMethod
     protected void setUp(Method method) throws Exception {
-        herokuApi = new HerokuAPI(config.getApiKey());
-
         dir = Files.createTempDir();
 
         emptyFile = new File(dir, "empty.file");
@@ -121,6 +119,7 @@ public abstract class BaseIT {
                 .setHerokuUser(method.getName() + "@" + getClass().getSimpleName())
                 .setEventSubscription(printAllEvents);
 
+        herokuApi = new HerokuAPI(config.getApiKey());
     }
 
 

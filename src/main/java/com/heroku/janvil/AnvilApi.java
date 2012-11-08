@@ -18,7 +18,7 @@ import java.util.concurrent.Future;
 class AnvilApi extends AbstractApi {
 
     AnvilApi(Client client, Config config) {
-        super(client, config, getEnvOrElse("ANVIL_HOST", "api.anvilworks.org"));
+        super(client, config, getPropOrEnvOrElse("anvil.host", "ANVIL_HOST", "api.anvilworks.org"));
         base.setProperty(ClientConfig.PROPERTY_CHUNKED_ENCODING_SIZE, -1 /* default chunk size */);
     }
 

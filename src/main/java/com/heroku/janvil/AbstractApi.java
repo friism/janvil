@@ -26,11 +26,16 @@ abstract class AbstractApi {
     }
 
     protected static String herokuHost() {
-        return getEnvOrElse("HEROKU_HOST", "heroku.com");
+        return getPropOrEnvOrElse("HEROKU_HOST", "heroku.com");
     }
 
-    protected static String getEnvOrElse(String key, String orElse) {
-        final String get = System.getenv(key);
-        return get != null ? get : orElse;
+    protected static String getPropOrEnvOrElse(String prop, String env, String orElse) {
+        if (System.getProperties().containsKey(prop)) {
+            return System.getProperty(prop);
+        } else if (System.getenv().containsKey(env)) {
+            return System.getenv(env);
+        } else {
+            return orElse;
+        }
     }
 }

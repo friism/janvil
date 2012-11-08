@@ -1,14 +1,20 @@
 package com.heroku.janvil;
 
 import com.heroku.api.App;
+import com.heroku.api.Release;
+import com.sun.jersey.api.client.Client;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
+import static com.heroku.janvil.Janvil.ClientType.*;
 import static org.testng.Assert.*;
 
 /**
@@ -16,7 +22,9 @@ import static org.testng.Assert.*;
  */
 public class JanvilIT extends BaseIT {
 
-    private static final String SAMPLE_BUILD_URL = "https://anvil-production.herokuapp.com/slugs/c51d5b81-d042-11e1-8327-2fad2fa1628b.tgz";
+    private static final String SLUG_WITH_PROCFILE = "https://api.anvilworks.org/slugs/422b0c41-290c-11e2-8ee7-3713214071f1.tgz";
+    private static final String SLUG_NO_PROCFILE = "https://anvil-production.herokuapp.com/slugs/c51d5b81-d042-11e1-8327-2fad2fa1628b.tgz";
+    private static final String DEVCENTER_JAVA_CODON_DEPLOYED = "vast-waters-2206";
 
     private Janvil janvil;
 
@@ -55,6 +63,16 @@ public class JanvilIT extends BaseIT {
     }
 
     @Test
+    public void testPipelinesNoKey() throws Exception {
+        try {
+            new Janvil(new Config("").setProtocol(Config.Protocol.HTTP)).downstreams("java");
+            fail();
+        } catch (JanvilRuntimeException e) {
+            assertEquals(e.getMessage(), "Heroku API key not found or invalid");
+        }
+    }
+
+    @Test
     public void testPipelinesBadApiKey() throws Exception {
         try {
             new Janvil(new Config("BAD_API_KEY").setProtocol(Config.Protocol.HTTP)).downstreams("java");
@@ -85,6 +103,16 @@ public class JanvilIT extends BaseIT {
     }
 
     @Test
+    public void testPipelinesNoAppAccess_WithBody() throws Exception {
+        try {
+            janvil.copy("java", "java", "no access with body");
+            fail();
+        } catch (JanvilRuntimeException e) {
+            assertEquals(e.getMessage(), "No access to app java");
+        }
+    }
+
+    @Test
     public void testStandardNonOkHandlePipelinesErrors() throws Exception {
         withApp(new AppRunnable() {
             public void run(App app) throws Exception {
@@ -94,6 +122,31 @@ public class JanvilIT extends BaseIT {
                 } catch (JanvilRuntimeException e) {
                     assertEquals(e.getMessage(), "Downstream app cannot be recursive");
                 }
+            }
+        });
+    }
+
+    @Test
+    public void testCopyWithProcfile() throws Exception {
+        withApp(new AppRunnable() {
+            public void run(App target) throws Exception {
+                final Client testClient = Janvil.getClient(FIXED_LENGTH);
+                final App source = herokuApi.getApp(DEVCENTER_JAVA_CODON_DEPLOYED);
+                final List<Release> sourceReleases = herokuApi.listReleases(source.getName());
+                final Release sourceLastRelease = sourceReleases.get(sourceReleases.size() - 1);
+                final String sourceCommitHead = sourceLastRelease.getCommit();
+                final Map<String, String> sourcePs = sourceLastRelease.getPSTable();
+                final String sourceContent = testClient.resource(source.getWebUrl()).get(String.class);
+
+                final String description = "copy with procfile";
+                janvil.copy(source.getName(), target.getName(), description);
+
+                final List<Release> targetReleases = herokuApi.listReleases(target.getName());
+                final Release targetLastRelease = targetReleases.get(targetReleases.size() - 1);
+                assertEquals(targetLastRelease.getDescription(), description);
+                assertEquals(targetLastRelease.getCommit(), sourceCommitHead);
+                assertEquals(targetLastRelease.getPSTable(), sourcePs);
+                assertEquals(testClient.resource(target.getWebUrl()).get(String.class), sourceContent);
             }
         });
     }
@@ -118,7 +171,7 @@ public class JanvilIT extends BaseIT {
                 assertEquals(noDiff.size(), 0);
 
                 final String commitHead = "1234567";
-                janvil.release(upstream, SAMPLE_BUILD_URL, "Kitchen Sink", commitHead);
+                janvil.release(upstream, SLUG_NO_PROCFILE, "Kitchen Sink", commitHead);
 
                 final List<String> oneDiff = janvil.diffDownstream(upstream);
                 assertEquals(oneDiff.size(), 1);

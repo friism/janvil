@@ -115,7 +115,6 @@ public abstract class BaseIT {
                         });
 
         config = new Config(AbstractApi.getPropOrEnv("heroku.apiKey", "HEROKU_API_KEY"))
-                .setProtocol(Config.Protocol.HTTP)
                 .setHerokuUser(method.getName() + "@" + getClass().getSimpleName())
                 .setEventSubscription(printAllEvents);
 

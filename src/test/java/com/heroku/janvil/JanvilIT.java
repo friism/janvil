@@ -8,8 +8,6 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +23,7 @@ public class JanvilIT extends BaseIT {
     private static final String SLUG_WITH_PROCFILE = "https://api.anvilworks.org/slugs/422b0c41-290c-11e2-8ee7-3713214071f1.tgz";
     private static final String SLUG_NO_PROCFILE = "https://anvil-production.herokuapp.com/slugs/c51d5b81-d042-11e1-8327-2fad2fa1628b.tgz";
     private static final String DEVCENTER_JAVA_CODON_DEPLOYED = "vast-waters-2206";
+    private static final String WAR_DEPLOYED_APP = "desolate-gorge-3755";
 
     private Janvil janvil;
 
@@ -127,11 +126,20 @@ public class JanvilIT extends BaseIT {
     }
 
     @Test
-    public void testCopyWithProcfile() throws Exception {
+    public void testCopyOfCodonDeployedAppWithProcfile() throws Exception {
+        assertCopyOf(DEVCENTER_JAVA_CODON_DEPLOYED);
+    }
+
+    @Test
+    public void testCopyWarDeployedApp() throws Exception {
+        assertCopyOf(WAR_DEPLOYED_APP);
+    }
+
+    private void assertCopyOf(final String sourceAppName) throws Exception {
         withApp(new AppRunnable() {
             public void run(App target) throws Exception {
                 final Client testClient = Janvil.getClient(FIXED_LENGTH);
-                final App source = herokuApi.getApp(DEVCENTER_JAVA_CODON_DEPLOYED);
+                final App source = herokuApi.getApp(sourceAppName);
                 final List<Release> sourceReleases = herokuApi.listReleases(source.getName());
                 final Release sourceLastRelease = sourceReleases.get(sourceReleases.size() - 1);
                 final String sourceCommitHead = sourceLastRelease.getCommit();

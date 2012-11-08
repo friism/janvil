@@ -165,7 +165,7 @@ public class JanvilIT extends BaseIT {
     }
 
     @Test
-    public void testKitchenSink() throws Exception {
+    public void testPipelinePromotion() throws Exception {
         withApps(2, new AppsRunnable() {
             public void run(App[] apps) throws Exception {
                 final String upstream = apps[0].getName();

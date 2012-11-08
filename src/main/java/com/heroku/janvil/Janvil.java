@@ -31,8 +31,6 @@ public class Janvil {
     static {
         final ClientConfig config = new DefaultClientConfig();
         config.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
-        config.getProperties().put(ClientConfig.PROPERTY_CHUNKED_ENCODING_SIZE, -1 /* default chunk size */);
-
         client = com.sun.jersey.api.client.Client.create(config);
     }
 
@@ -237,7 +235,13 @@ public class Janvil {
             throw new JanvilRuntimeException(e);
         }
 
-        return handleAs(releaseResponse, Map.class).get("release").toString();
+        final Map body = handleAs(releaseResponse, Map.class);
+
+        if (!body.containsKey("release")) {
+            throw new JanvilRuntimeException("release info not found in result");
+        }
+
+        return body.get("release").toString();
     }
 
     private class PollingListener implements Runnable {

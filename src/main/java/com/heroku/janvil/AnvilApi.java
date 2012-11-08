@@ -2,6 +2,7 @@ package com.heroku.janvil;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.multipart.FormDataMultiPart;
 import com.sun.jersey.multipart.file.FileDataBodyPart;
 
@@ -18,6 +19,7 @@ class AnvilApi extends AbstractApi {
 
     AnvilApi(Client client, Config config) {
         super(client, config, getEnvOrElse("ANVIL_HOST", "api.anvilworks.org"));
+        base.setProperty(ClientConfig.PROPERTY_CHUNKED_ENCODING_SIZE, -1 /* default chunk size */);
     }
 
     public Future<ClientResponse> post(Manifest manifest) throws IOException {

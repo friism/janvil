@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -26,12 +27,26 @@ import static javax.ws.rs.core.MediaType.*;
  */
 public class Janvil {
 
-    protected static final Client client;
+    protected static enum ClientType {
+        FIXED_LENGTH,
+        CHUNKED
+    }
 
-    static {
+    protected static final ConcurrentHashMap<ClientType, Client> clients = new ConcurrentHashMap<ClientType, Client>(2);
+
+    static Client getClient(ClientType clientType) {
+        if (clients.containsKey(clientType)) {
+            return clients.get(clientType);
+        }
+
         final ClientConfig config = new DefaultClientConfig();
         config.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
-        client = com.sun.jersey.api.client.Client.create(config);
+        if (clientType == ClientType.CHUNKED) {
+            config.getProperties().put(ClientConfig.PROPERTY_CHUNKED_ENCODING_SIZE, -1 /* default chunk size */);
+        }
+
+        clients.putIfAbsent(clientType, Client.create(config));
+        return clients.get(clientType);
     }
 
     public static enum Event {
@@ -66,8 +81,8 @@ public class Janvil {
     }
 
     public Janvil(Config config) {
-        anvil = new AnvilApi(client, config);
-        cisaurusApi = new CisaurusApi(client, config);
+        anvil = new AnvilApi(getClient(ClientType.CHUNKED), config);
+        cisaurusApi = new CisaurusApi(getClient(ClientType.FIXED_LENGTH), config);
         writeSlugUrl = config.getWriteSlugUrl();
         writeCacheUrl = config.getWriteCacheUrl();
         readCacheUrl = config.getReadCacheUrl();

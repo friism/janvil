@@ -27,7 +27,7 @@ public class AnvilApiIT extends BaseIT {
     @BeforeMethod
     protected void setUp(Method method) throws Exception {
         super.setUp(method);
-        anvil = new AnvilApi(Janvil.client, config);
+        anvil = new AnvilApi(Janvil.getClient(Janvil.ClientType.CHUNKED), config);
     }
 
     @Test

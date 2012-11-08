@@ -26,15 +26,23 @@ abstract class AbstractApi {
     }
 
     protected static String herokuHost() {
-        return getPropOrEnvOrElse("HEROKU_HOST", "heroku.com");
+        return getPropOrEnvOrElse("heroku.host", "HEROKU_HOST", "heroku.com");
     }
 
-    protected static String getPropOrEnvOrElse(String prop, String env, String orElse) {
+    protected static String getPropOrEnv(String prop, String env) {
         if (System.getProperties().containsKey(prop)) {
             return System.getProperty(prop);
         } else if (System.getenv().containsKey(env)) {
             return System.getenv(env);
         } else {
+            throw new IllegalArgumentException("System property [" + prop + "] and env [" + env + "] not set");
+        }
+    }
+
+    protected static String getPropOrEnvOrElse(String prop, String env, String orElse) {
+        try {
+            return getPropOrEnv(prop, env);
+        } catch (IllegalArgumentException e) {
             return orElse;
         }
     }

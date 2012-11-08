@@ -64,7 +64,7 @@ public abstract class BaseIT {
 
     @BeforeMethod
     protected void setUp(Method method) throws Exception {
-        herokuApi = new HerokuAPI(System.getenv("HEROKU_API_KEY"));
+        herokuApi = new HerokuAPI(config.getApiKey());
 
         dir = Files.createTempDir();
 
@@ -116,7 +116,7 @@ public abstract class BaseIT {
                             }
                         });
 
-        config = new Config(System.getenv("HEROKU_API_KEY"))
+        config = new Config(AbstractApi.getPropOrEnv("heroku.apiKey", "HEROKU_API_KEY"))
                 .setProtocol(Config.Protocol.HTTP)
                 .setHerokuUser(method.getName() + "@" + getClass().getSimpleName())
                 .setEventSubscription(printAllEvents);

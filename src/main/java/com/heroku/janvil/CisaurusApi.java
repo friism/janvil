@@ -56,9 +56,13 @@ public class CisaurusApi extends AbstractApi {
     }
 
     public Future<ClientResponse> copy(String sourceApp, String targetApp, String description) {
+        final Map<String, String> form = new HashMap<String, String>();
+        form.put("description", description);
+
         return v.path("/apps/" + sourceApp + "/copy/" + targetApp)
-                .queryParam("description", description)
+                .type(MediaType.APPLICATION_JSON_TYPE)
                 .accept(MediaType.APPLICATION_JSON_TYPE)
+                .entity(form)
                 .post(ClientResponse.class);
     }
 

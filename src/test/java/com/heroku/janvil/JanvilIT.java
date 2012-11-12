@@ -112,6 +112,34 @@ public class JanvilIT extends BaseIT {
     }
 
     @Test
+    public void testCopyNoAccessToSourceApp() throws Exception {
+        withApp(new AppRunnable() {
+            public void run(App app) throws Exception {
+                try {
+                    janvil.copy("java", app.getName(), "no access to source");
+                    fail();
+                } catch (JanvilRuntimeException e) {
+                    assertEquals(e.getMessage(), "No access to app java");
+                }
+            }
+        });
+    }
+
+    @Test
+    public void testCopyNoAccessToTargetApp() throws Exception {
+        withApp(new AppRunnable() {
+            public void run(App app) throws Exception {
+                try {
+                    janvil.copy(app.getName(), "java", "no access to source");
+                    fail();
+                } catch (JanvilRuntimeException e) {
+                    assertEquals(e.getMessage(), "No access to app java");
+                }
+            }
+        });
+    }
+
+    @Test
     public void testStandardNonOkHandlePipelinesErrors() throws Exception {
         withApp(new AppRunnable() {
             public void run(App app) throws Exception {

@@ -18,6 +18,10 @@ public final class Config {
     public Config(String apiKey) {
         this.apiKey = apiKey;
         this.eventSubscription = new EventSubscription<Janvil.Event>(Janvil.Event.class);
+        this.protocol = Config.Protocol.valueOf(AbstractApi.getPropOrEnvOrElse(
+                "janvil.defaultProtocol",
+                "JANVIL_DEFAULT_PROTOCOL",
+                Config.Protocol.HTTPS.name()));
     }
 
     public Config setProtocol(Protocol protocol) {

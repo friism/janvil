@@ -3,6 +3,7 @@ package com.heroku.janvil;
 import com.heroku.api.App;
 import com.heroku.api.Release;
 import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.filter.LoggingFilter;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -172,6 +173,7 @@ public class JanvilIT extends BaseIT {
         withApp(new AppRunnable() {
             public void run(App target) throws Exception {
                 final Client testClient = Janvil.getClient(FIXED_LENGTH);
+                testClient.addFilter(new LoggingFilter(System.out));
                 final App source = herokuApi.getApp(sourceAppName);
                 final List<Release> sourceReleases = herokuApi.listReleases(source.getName());
                 final Release sourceLastRelease = sourceReleases.get(sourceReleases.size() - 1);

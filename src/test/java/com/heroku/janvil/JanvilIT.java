@@ -3,11 +3,12 @@ package com.heroku.janvil;
 import com.heroku.api.App;
 import com.heroku.api.Release;
 import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.filter.LoggingFilter;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import java.io.File;
+import java.io.*;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
@@ -179,7 +180,7 @@ public class JanvilIT extends BaseIT {
                 final Release sourceLastRelease = sourceReleases.get(sourceReleases.size() - 1);
                 final String sourceCommitHead = sourceLastRelease.getCommit();
                 final Map<String, String> sourcePs = sourceLastRelease.getPSTable();
-                final String sourceContent = testClient.resource(source.getWebUrl()).get(String.class);
+                final String sourceContent = getWebContent(testClient, source);
 
                 final String description = "copy";
                 janvil.copy(source.getName(), target.getName(), description);
@@ -189,7 +190,28 @@ public class JanvilIT extends BaseIT {
                 assertEquals(targetLastRelease.getDescription(), description);
                 assertEquals(targetLastRelease.getCommit(), sourceCommitHead);
                 assertEquals(targetLastRelease.getPSTable(), sourcePs);
-                assertEquals(testClient.resource(target.getWebUrl()).get(String.class), sourceContent);
+                assertEquals(getWebContent(testClient, target), sourceContent);
+            }
+
+            private String getWebContent(Client testClient, App target) throws IOException, InterruptedException {
+                final int maxRetries = 5;
+                int retries = 0;
+                while (true) {
+                    try {
+                        return testClient.resource(target.getWebUrl()).get(String.class);
+                    } catch (UniformInterfaceException e) {
+                        System.err.println("Call to " + target.getWebUrl() +
+                                           " failed with status " + e.getResponse().getStatus() + ". " +
+                                           (maxRetries - retries) + " remaining.");
+
+                        if (retries++ <= maxRetries) {
+                            Thread.sleep(5000);
+                            continue;
+                        }
+
+                        throw e;
+                    }
+                }
             }
         });
     }

@@ -6,6 +6,7 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.filter.LoggingFilter;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.*;
@@ -35,8 +36,13 @@ public class JanvilIT extends BaseIT {
         janvil = new Janvil(config);
     }
 
-    @Test
-    public void testBuild() throws Exception {
+    @DataProvider
+    public Object[][] binary() {
+        return new Object[][] { { Boolean.TRUE }, { Boolean.FALSE } };
+    }
+
+    @Test(dataProvider = "binary")
+    public void testBuild(boolean parallelUploads) throws Exception {
         final File cache = new File(dir, ".anvil/cache");
         final File slug = new File(dir, ".anvil/slug");
 
@@ -45,11 +51,21 @@ public class JanvilIT extends BaseIT {
 
         Manifest m = new Manifest(dir);
         m.addAll();
-        janvil.build(m);
+
+        final int[] uploadCounterHolder = new int[]{0};
+        config.setParallelUploads(parallelUploads);
+        config.getEventSubscription().subscribe(Janvil.Event.UPLOADS_END, new EventSubscription.Subscriber<Janvil.Event>() {
+            public void handle(Janvil.Event event, Object data) {
+                uploadCounterHolder[0] = Integer.valueOf(data.toString());
+            }
+        });
+        new Janvil(config).build(m);
 
         assertTrue(cache.exists());
         assertFalse(slug.exists());
+        assertEquals(uploadCounterHolder[0], sampleFileIterations);
     }
+
 
     @Test
     public void testBuildFailure() throws Exception {

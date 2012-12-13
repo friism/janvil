@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.heroku.janvil.Janvil.Event.*;
 import static javax.ws.rs.core.MediaType.*;
@@ -75,6 +76,7 @@ public class Janvil {
     protected final boolean writeCacheUrl;
     protected final boolean readCacheUrl;
     protected final EventSubscription<Event> events;
+    protected final boolean parallelUploads;
 
     public Janvil(String apiKey) {
         this(new Config(apiKey));
@@ -86,6 +88,7 @@ public class Janvil {
         writeSlugUrl = config.getWriteSlugUrl();
         writeCacheUrl = config.getWriteCacheUrl();
         readCacheUrl = config.getReadCacheUrl();
+        parallelUploads = config.isParallelUploads();
         events = config.getEventSubscription();
     }
 
@@ -105,24 +108,37 @@ public class Janvil {
         }
     }
 
+    private void handleUploadResponse(File file, Future<ClientResponse> uploadFuture, AtomicInteger uploadCounter) throws InterruptedException, ExecutionException {
+        uploadFuture.get();
+        events.announce(UPLOAD_FILE_END, file);
+        uploadCounter.incrementAndGet();
+    }
+
     protected String _build(Manifest manifest, Map<String, String> env, String buildpack) throws InterruptedException, ExecutionException, IOException {
         events.announce(DIFF_START, manifest.getEntries().size());
         final Collection filesToUpload = anvil.diff(manifest).get().getEntity(Collection.class);
         events.announce(DIFF_END, filesToUpload.size());
 
         events.announce(UPLOADS_START, filesToUpload.size());
-        final Map<File, Future<ClientResponse>> uploads = new HashMap<File, Future<ClientResponse>>(filesToUpload.size());
+        final AtomicInteger uploadCounter = new AtomicInteger();
+        final Map<File, Future<ClientResponse>> uploadFutures = new HashMap<File, Future<ClientResponse>>(filesToUpload.size());
         for (Object hash : filesToUpload) {
             final File file = manifest.fromHash(hash.toString());
             events.announce(UPLOAD_FILE_START, file);
-            uploads.put(file, anvil.post(file));
-        }
+            final Future<ClientResponse> upload = anvil.post(file);
 
-        for (Map.Entry<File, Future<ClientResponse>> upload : uploads.entrySet()) {
-            upload.getValue().get();
-            events.announce(UPLOAD_FILE_END, upload.getKey());
+            if (parallelUploads) {
+                uploadFutures.put(file, upload);
+            } else {
+                handleUploadResponse(file, upload, uploadCounter);
+            }
         }
-        events.announce(UPLOADS_END, uploads.size());
+        if (parallelUploads) {
+            for (Map.Entry<File, Future<ClientResponse>> upload : uploadFutures.entrySet()) {
+                handleUploadResponse(upload.getKey(), upload.getValue(), uploadCounter);
+            }
+        }
+        events.announce(UPLOADS_END, uploadCounter.get());
 
         events.announce(BUILD_START);
         final String existingCacheUrl = readCacheUrl ? manifest.readCacheUrl() : "";

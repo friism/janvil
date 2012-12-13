@@ -14,6 +14,7 @@ public final class Config {
     private boolean readCacheUrl = true;
     private String herokuUser;
     private String herokuApp;
+    private boolean parallelUploads = false;
 
     public Config(String apiKey) {
         this.apiKey = apiKey;
@@ -64,6 +65,11 @@ public final class Config {
         return this;
     }
 
+    public Config setParallelUploads(boolean parallelUploads) {
+        this.parallelUploads = parallelUploads;
+        return this;
+    }
+
     String getApiKey() {
         return apiKey;
     }
@@ -98,6 +104,10 @@ public final class Config {
 
     String getHerokuApp() {
         return herokuApp;
+    }
+
+    public boolean isParallelUploads() {
+        return parallelUploads;
     }
 
     public static enum Protocol {

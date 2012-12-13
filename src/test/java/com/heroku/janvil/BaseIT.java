@@ -28,6 +28,7 @@ public abstract class BaseIT {
     protected Config config;
     protected HerokuAPI herokuApi;
     protected EventSubscription<Janvil.Event> printAllEvents;
+    protected int sampleFileIterations = 2;
 
     protected interface AppRunnable {
         void run(App app) throws Exception;
@@ -69,23 +70,25 @@ public abstract class BaseIT {
         emptyFile = new File(dir, "empty.file");
         assertTrue(emptyFile.createNewFile());
 
-        staticContentsFile = new File(dir, "static.file");
-        assertTrue(staticContentsFile.createNewFile());
-        final PrintWriter staticWriter = new PrintWriter(staticContentsFile);
-        staticWriter.append("STATIC");
-        staticWriter.close();
+        for (int i = 0; i < sampleFileIterations; i++) {
+            staticContentsFile = new File(dir, "static.file" + i);
+            assertTrue(staticContentsFile.createNewFile());
+            final PrintWriter staticWriter = new PrintWriter(staticContentsFile);
+            staticWriter.append("STATIC");
+            staticWriter.close();
 
-        randomContentsFile = new File(dir, "random.file");
-        assertTrue(randomContentsFile.createNewFile());
-        final PrintWriter randomWriter = new PrintWriter(randomContentsFile);
-        randomWriter.append(UUID.randomUUID().toString());
-        randomWriter.close();
+            randomContentsFile = new File(dir, "random.file" + i);
+            assertTrue(randomContentsFile.createNewFile());
+            final PrintWriter randomWriter = new PrintWriter(randomContentsFile);
+            randomWriter.append(UUID.randomUUID().toString());
+            randomWriter.close();
 
-        subdir = new File(dir, "subdir");
-        assertTrue(subdir.mkdir());
+            subdir = new File(dir, "subdir" + i);
+            assertTrue(subdir.mkdir());
 
-        subdirFile = new File(subdir, "subdir.file");
-        assertTrue(subdirFile.createNewFile());
+            subdirFile = new File(subdir, "subdir.file" + i);
+            assertTrue(subdirFile.createNewFile());
+        }
 
         final EnumSet<Janvil.Event> debugLevelOnly = EnumSet.of(Janvil.Event.HTTP_LOGGING_BYTE);
         final EnumSet<Janvil.Event> infoLevelOnly = EnumSet.complementOf(debugLevelOnly);

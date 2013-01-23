@@ -95,7 +95,7 @@ public class JanvilIT extends BaseIT {
             new Janvil(new Config("BAD_API_KEY").setProtocol(Config.Protocol.HTTP)).downstreams("java");
             fail();
         } catch (JanvilRuntimeException e) {
-            assertEquals(e.getMessage(), "No access to app java");
+            assertEquals(e.getMessage(), "Heroku API key not found or invalid");
         }
     }
 

@@ -15,9 +15,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.heroku.janvil.Janvil.Event.*;
@@ -148,18 +146,13 @@ public class Janvil {
         final String slugUrl = buildResponse.getHeaders().get("X-Slug-Url").get(0);
         final String cacheUrl = buildResponse.getHeaders().get("X-Cache-Url").get(0);
 
-        BufferedReader buildOutput = null;
+        final ExecutorService slurpeeMachine = Executors.newSingleThreadExecutor();
+        Future<Void> buildSlurpee = slurpeeMachine.submit(slurpBuildOutputCallable(buildResponse));
+        slurpeeMachine.shutdown();
         try {
-            buildOutput = new BufferedReader(new InputStreamReader(buildResponse.getEntityInputStream(), "UTF-8"));
-            String line;
-            while ((line = buildOutput.readLine()) != null) {
-                // strip null chars from keepalive=1
-                events.announce(BUILD_OUTPUT_LINE, line.replaceAll("\u0000", ""));
-            }
-        } finally {
-            if (buildOutput != null) {
-                buildOutput.close();
-            }
+            buildSlurpee.get(15, TimeUnit.MINUTES);
+        } catch (TimeoutException e) {
+            throw new JanvilRuntimeException("Timed out waiting for build results", e);
         }
 
         final int exitStatus = Integer.parseInt(anvil.exitStatus(manifestId).get().getEntity(String.class).trim());
@@ -178,6 +171,27 @@ public class Janvil {
         events.announce(BUILD_END, slugUrl);
 
         return slugUrl;
+    }
+
+    private Callable<Void> slurpBuildOutputCallable(final ClientResponse buildResponse) {
+        return new Callable<Void>() {
+            public Void call() throws Exception {
+                BufferedReader buildOutput = null;
+                try {
+                    buildOutput = new BufferedReader(new InputStreamReader(buildResponse.getEntityInputStream(), "UTF-8"));
+                    String line;
+                    while ((line = buildOutput.readLine()) != null) {
+                        // strip null chars from keepalive=1
+                        events.announce(BUILD_OUTPUT_LINE, line.replaceAll("\u0000", ""));
+                    }
+                } finally {
+                    if (buildOutput != null) {
+                        buildOutput.close();
+                    }
+                }
+                return null;
+            }
+        };
     }
 
     public void release(String appName, String slugUrl, String description) {

@@ -23,7 +23,7 @@ import static org.testng.Assert.*;
  */
 public class JanvilIT extends BaseIT {
 
-    private static final String SLUG_NO_PROCFILE = "https://anvil-production.herokuapp.com/slugs/c51d5b81-d042-11e1-8327-2fad2fa1628b.tgz";
+    private static final String SLUG_NO_PROCFILE = "https://api.anvilworks.org/slugs/c51d5b81-d042-11e1-8327-2fad2fa1628b.tgz";
     private static final String CODON_DEPLOYED_WITH_PROCFILE = "janvil-test-codon-proc";
     private static final String CODON_DEPLOYED_WITHOUT_PROCFILE = "janvil-test-codon-noproc";
     private static final String WAR_DEPLOYED_APP = "janvil-test-war-deployed";

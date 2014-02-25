@@ -202,7 +202,7 @@ public class JanvilIT extends BaseIT {
                 janvil.copy(source.getName(), target.getName(), description);
 
                 target = herokuApi.getApp(target.getName()); // refresh app info
-                assertEquals(target.getBuildpackProvidedDescription(), source.getBuildpackProvidedDescription());
+                assertBuildpackProvidedDescriptionEquals(target, source);
 
                 final List<Release> targetReleases = herokuApi.listReleases(target.getName());
                 final Release targetLastRelease = targetReleases.get(targetReleases.size() - 1);
@@ -210,6 +210,17 @@ public class JanvilIT extends BaseIT {
                 assertEquals(targetLastRelease.getCommit(), sourceCommitHead);
                 assertEquals(targetLastRelease.getPSTable(), sourcePs);
                 assertEquals(getWebContent(testClient, target), sourceContent);
+            }
+
+            private void assertBuildpackProvidedDescriptionEquals(App target, App source) {
+                assertEquals(
+                        normalizeBuildpackDescription(target.getBuildpackProvidedDescription()),
+                        normalizeBuildpackDescription(source.getBuildpackProvidedDescription())
+                );
+            }
+
+            private String normalizeBuildpackDescription(String buildpackProvidedDescription) {
+                return buildpackProvidedDescription == null ? "(unknown)" : buildpackProvidedDescription;
             }
 
             private String getWebContent(Client testClient, App target) throws IOException, InterruptedException {

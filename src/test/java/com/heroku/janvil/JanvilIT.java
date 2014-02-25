@@ -201,6 +201,9 @@ public class JanvilIT extends BaseIT {
                 final String description = "copy";
                 janvil.copy(source.getName(), target.getName(), description);
 
+                target = herokuApi.getApp(target.getName()); // refresh app info
+                assertEquals(target.getBuildpackProvidedDescription(), source.getBuildpackProvidedDescription());
+
                 final List<Release> targetReleases = herokuApi.listReleases(target.getName());
                 final Release targetLastRelease = targetReleases.get(targetReleases.size() - 1);
                 assertEquals(targetLastRelease.getDescription(), description);

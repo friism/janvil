@@ -201,18 +201,18 @@ public class JanvilIT extends BaseIT {
                 final String description = "copy";
                 janvil.copy(source.getName(), target.getName(), description);
 
-                assertUntil(5, 2000, new Runnable() {
+                assertBuildpackProvidedDescriptionEquals(source, herokuApi.getApp(target.getName()));
+
+                assertUntil(10, 2000, new Runnable() {
                     public void run() {
-                        assertBuildpackProvidedDescriptionEquals(source, herokuApi.getApp(target.getName()));
+                        final List<Release> targetReleases = herokuApi.listReleases(target.getName());
+                        final Release targetLastRelease = targetReleases.get(targetReleases.size() - 1);
+                        assertEquals(targetLastRelease.getDescription(), description);
+                        assertEquals(targetLastRelease.getCommit(), sourceCommitHead);
+                        assertEquals(targetLastRelease.getPSTable(), sourcePs);
+                        assertEquals(getWebContent(testClient, target), sourceContent);
                     }
                 });
-
-                final List<Release> targetReleases = herokuApi.listReleases(target.getName());
-                final Release targetLastRelease = targetReleases.get(targetReleases.size() - 1);
-                assertEquals(targetLastRelease.getDescription(), description);
-                assertEquals(targetLastRelease.getCommit(), sourceCommitHead);
-                assertEquals(targetLastRelease.getPSTable(), sourcePs);
-                assertEquals(getWebContent(testClient, target), sourceContent);
             }
 
             private void assertBuildpackProvidedDescriptionEquals(App source, App target) {
@@ -226,25 +226,8 @@ public class JanvilIT extends BaseIT {
                 return buildpackProvidedDescription == null ? "(unknown)" : buildpackProvidedDescription;
             }
 
-            private String getWebContent(Client testClient, App target) throws IOException, InterruptedException {
-                final int maxRetries = 5;
-                int retries = 0;
-                while (true) {
-                    try {
-                        return testClient.resource(target.getWebUrl()).get(String.class);
-                    } catch (UniformInterfaceException e) {
-                        System.err.println("Call to " + target.getWebUrl() +
-                                           " failed with status " + e.getResponse().getStatus() + ". " +
-                                           (maxRetries - retries) + " remaining.");
-
-                        if (retries++ <= maxRetries) {
-                            Thread.sleep(5000);
-                            continue;
-                        }
-
-                        throw e;
-                    }
-                }
+            private String getWebContent(Client testClient, App target) {
+                return testClient.resource(target.getWebUrl()).get(String.class);
             }
         });
     }

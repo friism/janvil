@@ -124,5 +124,17 @@ public abstract class BaseIT {
         herokuApi = new HerokuAPI(config.getApiKey());
     }
 
+    protected void assertUntil(int retries, int waitForMillis, Runnable assertion) throws InterruptedException {
+        try {
+            assertion.run();
+        } catch (AssertionError ae) {
+            if (retries > 1) {
+                Thread.sleep(waitForMillis);
+                assertUntil(--retries, waitForMillis, assertion);
+            } else {
+                throw ae;
+            }
+        }
+    }
 
 }

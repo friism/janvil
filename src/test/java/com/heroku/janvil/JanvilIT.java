@@ -188,7 +188,7 @@ public class JanvilIT extends BaseIT {
 
     private void assertCopyOf(final String sourceAppName) throws Exception {
         withApp(new AppRunnable() {
-            public void run(App target) throws Exception {
+            public void run(final App target) throws Exception {
                 final Client testClient = Janvil.getClient(FIXED_LENGTH);
                 testClient.addFilter(new LoggingFilter(System.out));
                 final App source = herokuApi.getApp(sourceAppName);
@@ -201,8 +201,11 @@ public class JanvilIT extends BaseIT {
                 final String description = "copy";
                 janvil.copy(source.getName(), target.getName(), description);
 
-                target = herokuApi.getApp(target.getName()); // refresh app info
-                assertBuildpackProvidedDescriptionEquals(target, source);
+                assertUntil(5, 2000, new Runnable() {
+                    public void run() {
+                        assertBuildpackProvidedDescriptionEquals(source, herokuApi.getApp(target.getName()));
+                    }
+                });
 
                 final List<Release> targetReleases = herokuApi.listReleases(target.getName());
                 final Release targetLastRelease = targetReleases.get(targetReleases.size() - 1);
@@ -212,7 +215,7 @@ public class JanvilIT extends BaseIT {
                 assertEquals(getWebContent(testClient, target), sourceContent);
             }
 
-            private void assertBuildpackProvidedDescriptionEquals(App target, App source) {
+            private void assertBuildpackProvidedDescriptionEquals(App source, App target) {
                 assertEquals(
                         normalizeBuildpackDescription(target.getBuildpackProvidedDescription()),
                         normalizeBuildpackDescription(source.getBuildpackProvidedDescription())

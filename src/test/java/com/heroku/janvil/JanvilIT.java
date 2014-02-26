@@ -216,7 +216,11 @@ public class JanvilIT extends BaseIT {
                 assertEquals(targetLastRelease.getDescription(), description);
                 assertEquals(targetLastRelease.getCommit(), sourceCommitHead);
                 assertEquals(targetLastRelease.getPSTable(), sourcePs);
-                assertEquals(getWebContent(testClient, target), sourceContent);
+                assertUntil(5, 2000, new Runnable() {
+                    public void run() {
+                        assertEquals(getWebContent(testClient, target), sourceContent);                    }
+                });
+
             }
 
             private void assertBuildpackProvidedDescriptionEquals(App source, App target) {

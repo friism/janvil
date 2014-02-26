@@ -202,7 +202,7 @@ public class JanvilIT extends BaseIT {
                 assertUntil(5, 2000, new Runnable() {
                     public void run() {
                         int initialReleases = 2;
-                        assertEquals(initialReleases, herokuApi.listReleases(target.getName()));
+                        assertEquals(initialReleases, herokuApi.listReleases(target.getName()).size());
                     }
                 });
 

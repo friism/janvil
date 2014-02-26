@@ -198,21 +198,25 @@ public class JanvilIT extends BaseIT {
                 final Map<String, String> sourcePs = sourceLastRelease.getPSTable();
                 final String sourceContent = getWebContent(testClient, source);
 
+                // block copy until we have the initial releases in place on the target app to avoid race conditions
+                assertUntil(5, 2000, new Runnable() {
+                    public void run() {
+                        int initialReleases = 2;
+                        assertEquals(initialReleases, herokuApi.listReleases(target.getName()));
+                    }
+                });
+
                 final String description = "copy";
                 janvil.copy(source.getName(), target.getName(), description);
 
                 assertBuildpackProvidedDescriptionEquals(source, herokuApi.getApp(target.getName()));
 
-                assertUntil(10, 2000, new Runnable() {
-                    public void run() {
-                        final List<Release> targetReleases = herokuApi.listReleases(target.getName());
-                        final Release targetLastRelease = targetReleases.get(targetReleases.size() - 1);
-                        assertEquals(targetLastRelease.getDescription(), description);
-                        assertEquals(targetLastRelease.getCommit(), sourceCommitHead);
-                        assertEquals(targetLastRelease.getPSTable(), sourcePs);
-                        assertEquals(getWebContent(testClient, target), sourceContent);
-                    }
-                });
+                final List<Release> targetReleases = herokuApi.listReleases(target.getName());
+                final Release targetLastRelease = targetReleases.get(targetReleases.size() - 1);
+                assertEquals(targetLastRelease.getDescription(), description);
+                assertEquals(targetLastRelease.getCommit(), sourceCommitHead);
+                assertEquals(targetLastRelease.getPSTable(), sourcePs);
+                assertEquals(getWebContent(testClient, target), sourceContent);
             }
 
             private void assertBuildpackProvidedDescriptionEquals(App source, App target) {

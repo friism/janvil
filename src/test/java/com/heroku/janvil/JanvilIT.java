@@ -241,6 +241,22 @@ public class JanvilIT extends BaseIT {
     }
 
     @Test
+    public void testReleaseInvalidUrl() throws Exception {
+        withApp(new AppRunnable() {
+            public void run(final App app) throws Exception {
+                String invalidUrl = "http://example.com/invalid.tgz";
+                try {
+                    janvil.release(app.getName(), invalidUrl, "testReleaseInvalidUrl");
+                    fail();
+                } catch (JanvilRuntimeException e) {
+                    assertEquals(e.getMessage(), "Could not find " + invalidUrl);
+                }
+            }
+
+        });
+    }
+
+    @Test
     public void testPipelinePromotion() throws Exception {
         withApps(2, new AppsRunnable() {
             public void run(App[] apps) throws Exception {

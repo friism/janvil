@@ -27,6 +27,9 @@ public class JanvilIT extends BaseIT {
     private static final String CODON_DEPLOYED_WITH_PROCFILE = "janvil-test-codon-proc";
     private static final String CODON_DEPLOYED_WITHOUT_PROCFILE = "janvil-test-codon-noproc";
     private static final String WAR_DEPLOYED_APP = "janvil-test-war-deployed";
+    private static final String BAMBOO_192 = "janvil-test-bamboo-192";
+    private static final String CEDAR_10 = "janvil-test-cedar-10";
+    private static final String CEDAR_14 = "janvil-test-cedar-14";
 
     private Janvil janvil;
 
@@ -130,6 +133,16 @@ public class JanvilIT extends BaseIT {
     }
 
     @Test
+    public void testBambooNotAllowed() throws Exception {
+        try {
+            janvil.copy(BAMBOO_192, BAMBOO_192, "");
+            fail();
+        } catch (JanvilRuntimeException e) {
+            assertTrue(e.getMessage().contains("using an unsupported stack bamboo-mri-1.9.2"));
+        }
+    }
+
+    @Test
     public void testCopyNoAccessToSourceApp() throws Exception {
         withApp(new AppRunnable() {
             public void run(App app) throws Exception {
@@ -169,6 +182,16 @@ public class JanvilIT extends BaseIT {
                 }
             }
         });
+    }
+
+    @Test
+    public void testCopyOfCedar10() throws Exception {
+        assertCopyOf(CEDAR_10);
+    }
+
+    @Test
+    public void testCopyOfCedar14() throws Exception {
+        assertCopyOf(CEDAR_14);
     }
 
     @Test

@@ -1,3 +1,5 @@
+**[DEPRECATED: The Anvil build service has been turned off, so this client will no longer work](https://devcenter.heroku.com/changelog-items/613)**
+
 # Janvil
 A Java-based library for interacting with the [Anvil build service](https://github.com/ddollar/anvil).
 
